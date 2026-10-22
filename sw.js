@@ -1,4 +1,4 @@
-const C="georgia-v2",A=["./","index.html","style.css","app.js","manifest.json","icon-192.png","icon-512.png"];
+const C="georgia-v3",A=["./","index.html","style.css","app.js","manifest.json","icon-192.png","icon-512.png"];
 const NET=/(\/|index\.html|\.js|\.css|manifest\.json)$/;
 self.addEventListener("install",e=>{self.skipWaiting();e.waitUntil(caches.open(C).then(c=>c.addAll(A.map(u=>new Request(u,{cache:"reload"})))))});
 self.addEventListener("activate",e=>{e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(x=>x!=C).map(x=>caches.delete(x)))).then(()=>self.clients.claim()))});
