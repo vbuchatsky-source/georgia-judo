@@ -19,7 +19,7 @@ const s=JSON.parse(localStorage.pk||"{}");return Object.entries(L).map(([h,a])=>
 info:()=>`<div class="box"><h2>🚨 חירום</h2><p>מספר חירום אחיד: <b>112</b> (משטרה, אמבולנס, כבאות)</p>${tel("112")}</div>
 <div class="box"><h2>ℹ️ מידע שימושי</h2><p>💱 מטבע: לארי גאורגי (GEL ₾). כרטיסי אשראי מקובלים ברוב המקומות.<br>🔌 חשמל: 220V, שקעים מסוג C/F (תקע ישראלי עגול בדרך כלל מתאים).<br>🕐 שעון: UTC+4 – שעתיים לפני ישראל בנובמבר.<br>🛂 ישראלים: כניסה ללא ויזה (עד שנה); דרכון בתוקף.<br>🗣️ שפה: גאורגית; רוסית ואנגלית מובנות לרוב.<br>🌡️ טביליסי בנובמבר: בערך 3–13°C.</p></div>
 <div class="box"><h2>🇮🇱 שגרירות ישראל בטביליסי</h2><a class="btn alt" href="https://embassies.gov.il/tbilisi">אתר השגרירות</a><p class="sub">טלפון חירום כללי של משרד החוץ: <a href="tel:+97225303155">+972-2-5303155</a></p></div>`,
-pp:()=>`<div class="box"><h2>🛂 דרכונים – רק במכשיר הזה</h2><p class="sub">הפרטים והתמונות נשמרים רק בדפדפן של הטלפון הזה (IndexedDB) ולא נשלחים לשום מקום. ניקוי נתוני הדפדפן ימחק אותם. מומלץ להגדיר PIN – אז הכל מוצפן (AES-GCM).</p><div id="ppb">טוען…</div></div>`};
+pp:()=>`<div class="box"><h2>🔐 צילומי דרכונים (מוצפנים)</h2><div id="vault"></div></div><div class="box"><h2>🛂 הערות נוספות – רק במכשיר הזה</h2><p class="sub">הפרטים והתמונות נשמרים רק בדפדפן של הטלפון הזה (IndexedDB) ולא נשלחים לשום מקום. ניקוי נתוני הדפדפן ימחק אותם. מומלץ להגדיר PIN – אז הכל מוצפן (AES-GCM).</p><div id="ppb">טוען…</div></div>`};
 // ---------- passports (local only) ----------
 const PEOPLE=["ויטאלי","יעל (יוליה)","אדם","טום"];let KEY=null,PPD=null;
 const db=()=>new Promise((r,j)=>{const q=indexedDB.open("georgia-pp",1);q.onupgradeneeded=()=>q.result.createObjectStore("s");q.onsuccess=()=>r(q.result);q.onerror=j});
@@ -42,6 +42,14 @@ b.querySelectorAll("input[data-ph]").forEach(x=>x.onchange=()=>{const f=x.files[
 if($("#sp"))$("#sp").onclick=async()=>{const p=$("#np").value;if(p.length<4)return alert("לפחות 4 ספרות");const salt=crypto.getRandomValues(new Uint8Array(16));KEY=await derive(p,salt);await dput("meta",{salt});await save();alert("מוצפן. אין דרך לשחזר PIN שנשכח.");ppInit()};
 if($("#lock"))$("#lock").onclick=()=>{KEY=null;PPD=null;ppInit()};
 $("#wipe").onclick=async()=>{if(!confirm("למחוק הכל?"))return;await dput("data",null);await dput("meta",null);KEY=null;PPD={};ppInit()}}
+// ---------- encrypted vault ----------
+let VK=null;const b64=x=>Uint8Array.from(atob(x),c=>c.charCodeAt(0));
+async function vdec(k,id){const u=new Uint8Array(await (await fetch("sec/"+id+".bin")).arrayBuffer());return crypto.subtle.decrypt({name:"AES-GCM",iv:u.slice(0,12)},k,u.slice(12))}
+async function vault(){const el=$("#vault");if(!el)return;if(!VK){el.innerHTML=`<input id="vpw" type="password" inputmode="numeric" placeholder="סיסמה"><button class="btn" id="vgo">🔓 פתיחה</button><p class="sub" id="vmsg"></p>`;
+$("#vgo").onclick=async()=>{$("#vmsg").textContent="מפענח… (כמה שניות)";try{const m=await (await fetch("sec/meta.json")).json();const b=await crypto.subtle.importKey("raw",enc.encode($("#vpw").value),"PBKDF2",false,["deriveKey"]);const k=await crypto.subtle.deriveKey({name:"PBKDF2",salt:b64(m.salt),iterations:m.iter,hash:"SHA-256"},b,{name:"AES-GCM",length:256},false,["decrypt"]);await vdec(k,"info");VK=k;vault()}catch(e){$("#vmsg").textContent="סיסמה שגויה"}};return}
+const info=JSON.parse(dec.decode(await vdec(VK,"info")));el.innerHTML=info.people.map(p=>`<div class="pp"><h3>${p.n}</h3>${p.exp?`<p>תוקף: <b>${p.exp.split("-").reverse().join("/")}</b></p>${new Date(p.exp)<new Date("2027-05-22")?'<div class="warn">⚠️ הדרכון בתוקף פחות מ-6 חודשים מיום החזרה (22.11.2026) – לבדוק מול דרישות הכניסה לגאורגיה ואל על, ולשקול חידוש.</div>':""}`:""}<img id="im-${p.f}" alt=""></div>`).join("")+`<button class="btn alt" id="vlock">🔒 נעילה</button>`;
+$("#vlock").onclick=()=>{VK=null;vault()};
+for(const p of info.people){const d=await vdec(VK,p.f);$("#im-"+p.f).src=URL.createObjectURL(new Blob([d],{type:"image/jpeg"}))}}
 // ---------- weather ----------
 const WI=c=>c==0?"☀️":c<3?"🌤️":c<4?"☁️":c<50?"🌫️":c<70?"🌧️":c<80?"🌨️":"⛈️";
 async function wx(){const el=$("#wx");if(!el)return;try{const r=await fetch("https://api.open-meteo.com/v1/forecast?latitude=41.7151&longitude=44.8271&current=temperature_2m,weather_code&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=Asia%2FTbilisi&forecast_days=16");const d=await r.json();localStorage.wx=JSON.stringify(d);show(d)}catch(e){if(localStorage.wx)show(JSON.parse(localStorage.wx),1);else el.textContent="אין חיבור"}
@@ -50,6 +58,6 @@ function show(d,off){el.innerHTML=`<p>עכשיו: ${WI(d.current.weather_code)} 
 function go(t){location.hash=t;$("#main").innerHTML=V[t]();$("#tabs").innerHTML=TABS.map(([k,i,l])=>`<button class="${k==t?'on':''}" data-t="${k}">${i}<br>${l}</button>`).join("");$("#tabs").querySelectorAll("button").forEach(b=>b.onclick=()=>go(b.dataset.t));scrollTo(0,0);
 if(t=="trip"){wx();const n=Math.ceil((new Date("2026-11-16")-new Date())/864e5);$("#cd").textContent=n>0?`⏳ עוד ${n} ימים לטיסה`:""}
 if(t=="pack")document.querySelectorAll("[data-k]").forEach(x=>x.onchange=()=>{const s=JSON.parse(localStorage.pk||"{}");s[x.dataset.k]=x.checked;localStorage.pk=JSON.stringify(s);x.parentNode.classList.toggle("done",x.checked)});
-if(t=="pp")ppInit()}
+if(t=="pp"){ppInit();vault()}}
 go((location.hash.slice(1) in V)?location.hash.slice(1):"trip");
 if("serviceWorker"in navigator)navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>r.update());
