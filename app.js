@@ -1,5 +1,5 @@
 const $=s=>document.querySelector(s),T="<span class='todo'>למלא</span>";
-const TABS=[["trip","🧳","טיול"],["fly","✈️","טיסות"],["judo","🥋","מחנה"],["ins","🛡️","ביטוח"],["pack","✅","ציוד"],["info","ℹ️","גאורגיה"],["pp","🛂","דרכונים"]];
+const TABS=[["trip","🧳","טיול"],["fly","✈️","טיסות"],["judo","🥋","מחנה"],["go","📍","לבקר"],["ins","🛡️","ביטוח"],["pack","✅","ציוד"],["info","ℹ️","גאורגיה"],["pp","🛂","דרכונים"]];
 const tel=(n,l)=>`<a class="btn" href="tel:${n.replace(/[^+\d*]/g,'')}">📞 ${l||n}</a>`;
 const V={
 trip:()=>`<div class="box"><h2>הטיול</h2><p>✈️ <b>16.11.2026</b> → 🏠 <b>22.11.2026</b> (7 ימים)</p><p>👨‍👩‍👦‍👦 ויטאלי, יעל (יוליה), אדם (2014), טום (2015)</p><p>🥋 מחנה אימונים בג'ודו – ${T}</p><p id="cd"></p></div>
@@ -25,6 +25,7 @@ const s=JSON.parse(localStorage.pk||"{}");return Object.entries(L).map(([h,a])=>
 info:()=>`<div class="box"><h2>🚨 חירום</h2><p>מספר חירום אחיד: <b>112</b> (משטרה, אמבולנס, כבאות)</p>${tel("112")}</div>
 <div class="box"><h2>ℹ️ מידע שימושי</h2><p>💱 מטבע: לארי גאורגי (GEL ₾). כרטיסי אשראי מקובלים ברוב המקומות.<br>🔌 חשמל: 220V, שקעים מסוג C/F (תקע ישראלי עגול בדרך כלל מתאים).<br>🕐 שעון: UTC+4 – שעתיים לפני ישראל בנובמבר.<br>🛂 ישראלים: כניסה ללא ויזה (עד שנה); דרכון בתוקף.<br>🗣️ שפה: גאורגית; רוסית ואנגלית מובנות לרוב.<br>🌡️ טביליסי בנובמבר: בערך 3–13°C.</p></div>
 <div class="box"><h2>🇮🇱 שגרירות ישראל בטביליסי</h2><a class="btn alt" href="https://embassies.gov.il/tbilisi">אתר השגרירות</a><p class="sub">טלפון חירום כללי של משרד החוץ: <a href="tel:+97225303155">+972-2-5303155</a></p></div>`,
+go:()=>goView(),
 pp:()=>`<div class="box"><h2>🔐 צילומי דרכונים (מוצפנים)</h2><div id="vault"></div></div><div class="box"><h2>🛂 הערות נוספות – רק במכשיר הזה</h2><p class="sub">הפרטים והתמונות נשמרים רק בדפדפן של הטלפון הזה (IndexedDB) ולא נשלחים לשום מקום. ניקוי נתוני הדפדפן ימחק אותם. מומלץ להגדיר PIN – אז הכל מוצפן (AES-GCM).</p><div id="ppb">טוען…</div></div>`};
 // ---------- passports (local only) ----------
 const PEOPLE=["ויטאלי","יעל (יוליה)","אדם","טום"];let KEY=null,PPD=null;
@@ -64,6 +65,7 @@ function show(d,off){el.innerHTML=`<p>עכשיו: ${WI(d.current.weather_code)} 
 function go(t){location.hash=t;$("#main").innerHTML=V[t]();$("#tabs").innerHTML=TABS.map(([k,i,l])=>`<button class="${k==t?'on':''}" data-t="${k}">${i}<br>${l}</button>`).join("");$("#tabs").querySelectorAll("button").forEach(b=>b.onclick=()=>go(b.dataset.t));scrollTo(0,0);
 if(t=="trip"){wx();const n=Math.ceil((new Date("2026-11-16")-new Date())/864e5);$("#cd").textContent=n>0?`⏳ עוד ${n} ימים לטיסה`:""}
 if(t=="pack")document.querySelectorAll("[data-k]").forEach(x=>x.onchange=()=>{const s=JSON.parse(localStorage.pk||"{}");s[x.dataset.k]=x.checked;localStorage.pk=JSON.stringify(s);x.parentNode.classList.toggle("done",x.checked)});
-if(t=="pp"){ppInit();vault()}}
+if(t=="pp"){ppInit();vault()}
+if(t=="go")goInit()}
 go((location.hash.slice(1) in V)?location.hash.slice(1):"trip");
 if("serviceWorker"in navigator)navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>r.update());
