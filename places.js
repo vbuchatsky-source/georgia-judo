@@ -84,40 +84,35 @@ function routeMaps(r){
   return "https://www.google.com/maps/dir/?api=1&origin="+encodeURIComponent(o)+"&destination="+encodeURIComponent(o)+"&waypoints="+encodeURIComponent(w)+"&travelmode="+r.mode;
 }
 function fmtDur(m){const h=Math.floor(m/60),x=m%60;return h?h+" שע׳ "+x+" דק׳":x+" דק׳"}
-function routesView(){
-  return `<div class="box"><h2>🗺️ מסלולים מהמלון</h2>
-<p class="sub">כל מסלול מתחיל ונגמר ב־Hotel Residence Plaza. המרחקים והזמנים מבוססים על ניתוב הליכה/נסיעה אמיתי (OSRM). זמן ביקור בכל אתר לא כלול – הוסיפו לפי הקצב שלכם.</p>
-<p class="note">📅 16–22.11.2026 · מחנה ג'ודו – שלבו מסלול בין האימונים. ב־22.11 הטיסה ב־12:05, אז ביום האחרון רק משהו קצר בבוקר.</p></div>
-<div class="box" style="background:#eef6ff"><h2>🩺 משימה · מדרסים (לא מסלול)</h2>
-<p><b>${CLINIC.n}</b><br><span class="todo">${CLINIC.status}</span></p>
-<p>🕐 ${CLINIC.hours}</p>
-<p>💰 ${CLINIC.price}</p>
-<p>🔬 ${CLINIC.tech}</p>
-<p>📅 ${CLINIC.timing}</p>
-<p>👟 ${CLINIC.shoes}</p>
+let RT=+(localStorage.getItem("rt")||0);
+const RSHORT=["עיר עתיקה","מרכז","כרוניקה","מצחטה"];
+function clinicBox(){return `<details class="more"><summary>🩺 מדרסים · ${CLINIC.status}</summary>
+<p><b>${CLINIC.n}</b></p><p>🕐 ${CLINIC.hours}</p><p>💰 ${CLINIC.price}</p><p>🔬 ${CLINIC.tech}</p><p>📅 ${CLINIC.timing}</p><p>👟 ${CLINIC.shoes}</p>
 <p>📞 <a href="${CLINIC.walink}" target="_blank" rel="noopener">WhatsApp ${CLINIC.wa}</a> · <a href="mailto:${CLINIC.email}">${CLINIC.email}</a></p>
-${CLINIC.branches.map(b=>`<div class="note" style="margin:10px 0"><b>${b.rec?"⭐ ":""}${b.n}</b><br><span class="sub" dir="ltr" style="text-align:right;display:block">${b.e}</span>🚕 מהמלון: ~${b.km} ק"מ · ~${b.min} דק׳ ב־Bolt/רכב<a class="btn" href="https://www.google.com/maps/dir/?api=1&origin=${HOTEL.lat},${HOTEL.lng}&destination=${b.lat},${b.lng}&travelmode=driving" target="_blank" rel="noopener">🧭 ניווט ל${b.rec?"דינמו":"ליובליאנה"}</a></div>`).join("")}
-</div>
-`+ROUTES.map(r=>`<div class="box route"><h2>${r.icon} ${r.n}</h2>
-<p><b>${r.modeHe}</b> · ~${r.km} ק"מ · נסיעה/הליכה ~${fmtDur(r.min)} · יציאה מומלצת <b>${r.start}</b></p>
-<p class="sub">${r.tip}</p>
-<div class="stops">${r.stops.map((s,idx)=>stopCard(r,s,idx)).join("")}</div>
-<p class="sub">↩ חזרה למלון בסוף המסלול.</p>
-<a class="btn" href="${routeMaps(r)}" target="_blank" rel="noopener">🧭 נווט במסלול</a>
-</div>`).join("")}
+${CLINIC.branches.map(b=>`<div class="br"><b>${b.rec?"⭐ ":""}${b.n}</b><br><span class="sub">${b.e}</span><br>🚕 ~${b.km} ק"מ · ~${b.min} דק׳ מהמלון<a class="btn alt" href="https://www.google.com/maps/dir/?api=1&origin=${HOTEL.lat},${HOTEL.lng}&destination=${b.lat},${b.lng}&travelmode=driving" target="_blank" rel="noopener">🧭 ניווט ל${b.rec?"דינמו":"ליובליאנה"}</a></div>`).join("")}</details>`}
+function routesView(){const r=ROUTES[RT]||ROUTES[0];
+  return `<div class="rchips">${ROUTES.map((x,i)=>`<button data-r="${i}" class="${i==RT?"on":""}">${RSHORT[i]||x.n}</button>`).join("")}</div>
+<section class="rhead"><h2>${r.n}</h2>
+<p class="rmeta">${r.icon} ${r.modeHe} · ${r.km} ק"מ · ${fmtDur(r.min)} · יציאה ${r.start}</p>
+<p class="rtip">${r.tip}</p>
+<a class="btn" href="${routeMaps(r)}" target="_blank" rel="noopener">🧭 נווט במסלול</a></section>
+<ol class="tl"><li class="tlend">🏨 יציאה מהמלון</li>
+${r.stops.map((s,idx)=>stopCard(r,s,idx)).join("")}
+<li class="tlend">🏨 חזרה למלון</li></ol>
+<details class="more"><summary>ℹ️ על המסלולים</summary><p>כל מסלול מתחיל ונגמר ב־Hotel Residence Plaza. המרחקים והזמנים לפי ניתוב הליכה/נסיעה אמיתי (OSRM), בלי זמן הביקור עצמו.</p><p>📅 16–22.11 · שלבו מסלול בין האימונים. ב־22.11 הטיסה ב־12:05 – רק משהו קצר בבוקר.</p></details>
+${clinicBox()}`}
 const esc=t=>String(t).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const STOPEMO=["🌉","🌳","🚡","🗽","🍷","♨️","💦","🛍️","🏛️","🍲","🍖","🍰","🖼️","🗿","🌷","⛪","💃"];
 function gallery(i){const L=photosOf(i);
-  if(!L.length)return `<div class="gal none"><span>${STOPEMO[i]||"📍"}</span><small>אין עדיין תמונות חופשיות למקום הזה – לחצו „נווט“ לראות תמונות ב-Google Maps</small></div>`;
-  return `<div class="gal" data-p="${i}"><div class="gtrack">${L.map((p,k)=>`<img src="${p[0]}" ${k?'loading="lazy"':''} decoding="async" alt="${esc(PLACES[i].e)} – תמונה ${k+1}" data-k="${k}">`).join("")}</div>
-<span class="gcount">📷 ${L.length}</span>${L.length>1?`<div class="dots">${L.map((_,k)=>`<i class="${k?"":"on"}"></i>`).join("")}</div>`:""}</div>
-<p class="credit">צילום: ${esc([...new Set(L.map(p=>p[1].split(" · ").pop()))].join(", "))}${L.length<4?` · נמצאו רק ${L.length==1?"תמונה אחת":L.length+" תמונות"}`:""} · הקישו להגדלה</p>`}
-function stopCard(r,s,idx){const p=PLACES[s.i];
-  return `<div class="stop">${gallery(s.i)}<div class="sb"><div class="sh"><span class="num">${idx+1}</span><div><h3>${STOPEMO[s.i]||"📍"} ${p.n}</h3><span class="sub en" dir="ltr">${p.e}</span></div></div>
-<p class="snote">${s.note}</p>
-<div class="srcs"><a class="btn" href="${nav(p).replace("walking",r.mode)}" target="_blank" rel="noopener">🧭 נווט</a>${(p.s||[]).map((u,i)=>`<a class="btn alt" href="${u}" target="_blank" rel="noopener">🎬 מקור${p.s.length>1?" "+(i+1):""}</a>`).join("")}</div></div>
-${s.nx?`<div class="nx">⬇️ הלאה: ${s.nx}</div>`:""}</div>`}
+  if(!L.length)return `<div class="gal none">${STOPEMO[i]||"📍"} <span>אין תמונות</span></div>`;
+  return `<div class="gal" data-p="${i}"><div class="gtrack">${L.map((p,k)=>`<img src="${p[0]}" ${k?'loading="lazy"':''} decoding="async" alt="${esc(PLACES[i].n)} ${k+1}" data-k="${k}">`).join("")}</div>${L.length>1?`<div class="dots">${L.map((_,k)=>`<i class="${k?"":"on"}"></i>`).join("")}</div>`:""}</div>`}
+function legTxt(nx){const m=nx.match(/^([\d.]+) ק"מ · (\d+) דק׳(.*)$/);return m?`${m[2]} דק׳ · ${m[1]} ק"מ${m[3]}`:nx}
+function stopCard(r,s,idx){const p=PLACES[s.i],last=idx==r.stops.length-1;
+  return `<li class="tls">${gallery(s.i)}<div class="srow"><span class="num">${idx+1}</span><h3>${p.n}</h3>
+<a class="ib" href="${nav(p).replace("walking",r.mode)}" target="_blank" rel="noopener" aria-label="נווט">🧭</a>${(p.s||[]).map(u=>`<a class="ib" href="${u}" target="_blank" rel="noopener" aria-label="מקור">🎬</a>`).join("")}</div>
+<p class="snote">${s.note}</p></li>${s.nx?`<li class="leg">↓ ${legTxt(s.nx)}${last?" (חזרה)":""}</li>`:""}`}
 function routesInit(){
+  document.querySelectorAll(".rchips button").forEach(b=>b.onclick=()=>{RT=+b.dataset.r;localStorage.setItem("rt",RT);$("#main").innerHTML=routesView();routesInit();scrollTo(0,0)});
   document.querySelectorAll(".gal[data-p]").forEach(g=>{const tr=g.querySelector(".gtrack"),dots=[...g.querySelectorAll(".dots i")],imgs=[...tr.children];
     if(dots.length&&"IntersectionObserver" in window){const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.intersectionRatio>.6){const k=+e.target.dataset.k;dots.forEach((d,j)=>d.classList.toggle("on",j==k))}}),{root:tr,threshold:[.6]});imgs.forEach(im=>io.observe(im))}
     imgs.forEach(im=>{im.onclick=()=>openLB(+g.dataset.p,+im.dataset.k);im.onerror=()=>{im.remove()}})})}
