@@ -36,7 +36,21 @@ $("#gomsg").innerHTML=`<p class="note">⏳ מאתר מיקום…</p>`;
 navigator.geolocation.getCurrentPosition(p=>{GO.o={lat:p.coords.latitude,lng:p.coords.longitude};GO.msg=`<p class="note">📡 ממוין לפי <b>המיקום הנוכחי שלך</b> (עודכן ב-${new Date().toLocaleTimeString("he-IL",{hour:"2-digit",minute:"2-digit"})}, דיוק בערך ${Math.round(p.coords.accuracy)} מ').</p>`;goInit()},
 e=>{GO.msg=`<div class="warn">${e.code==1?"הגישה למיקום נחסמה. אפשר לאשר אותה בהגדרות הדפדפן או הטלפון.":e.code==3?"איתור המיקום לקח יותר מדי זמן. כדאי לנסות שוב בחוץ.":"המיקום לא זמין כרגע."}<br>בינתיים אפשר ללחוץ על „מרחק מהמלון“.</div>`;goInit()},{enableHighAccuracy:true,timeout:15000,maximumAge:60000})}}
 // --- day routes (OSRM routed-foot / routed-car, Nov 2026) ---
-const CLINIC={n:"Akhali Khedva · מדרסים",e:"Tsereteli Ave 2, Dinamo Arena gate 5",lat:41.7230,lng:44.7898,d:"אבחון מתוכנן 16–17.11, איסוף 20–21.11. זו משימה נפרדת, לא מסלול טיול.",kmCar:6.8,minCar:10};
+const CLINIC={
+  n:"Akhali Khedva · ახალი ხედვა · מדרסים",
+  status:"⏳ עדיין מחליטים",
+  hours:"ב׳–א׳ 10:00–19:00 · מומלץ לקבוע תור מראש",
+  wa:"+995 558 98 10 98",walink:"https://wa.me/995558981098",
+  email:"info@akhalikhedva.ge",
+  price:"אבחון 70 ₾ (≈₪86) + 240 ₾ (≈₪295) למדרס. 3 מדרסים עם אבחון: 790 ₾ (≈₪972).",
+  tech:"אבחון על מסלול חיישנים איטלקי DIASU (עמידה והליכה), 20–30 דק׳. מדרסים מקצף אנטי־אלרגני PEDSAN, מחזיקים 8–12 חודשים.",
+  timing:"אבחון ב־16–17.11 → מוכן ב־20–21.11.",
+  shoes:"להביא נעלי ספורט גדולות בחצי עד מספר אחד. המידה שלך: 42.5–43.",
+  branches:[
+    {id:"dinamo",rec:1,n:"סניף דינמו (מומלץ – יש מפעל ותיקונים במקום)",e:"Tsereteli Ave 2 · Dinamo Arena, שער 5, סקטורים 1–2",lat:41.7230285,lng:44.7897943,km:6.8,min:10},
+    {id:"ljub",rec:0,n:"סניף ליובליאנה",e:"Ljubljana St 60, Tbilisi",lat:41.7771655,lng:44.7746264,km:13.8,min:18}
+  ]
+};
 const ROUTES=[
 {id:"old",n:"עיר עתיקה · ריקה ונריקלה",icon:"🚶",mode:"walking",modeHe:"הליכה",start:"09:00",km:8.7,min:116,tip:"יום מלא. אפשר Bolt בחזרה מהמיידן אם עייפים (~10 דק׳ / ~2.5 ק\"מ).",stops:[
 {i:9,note:"ארוחת בוקר/צהריים גאורגית (בדקו איזה סניף)",nx:"1.7 ק\"מ · 23 דק׳"},
@@ -75,9 +89,15 @@ function routesView(){
 <p class="sub">כל מסלול מתחיל ונגמר ב־Hotel Residence Plaza. המרחקים והזמנים מבוססים על ניתוב הליכה/נסיעה אמיתי (OSRM). זמן ביקור בכל אתר לא כלול – הוסיפו לפי הקצב שלכם.</p>
 <p class="note">📅 16–22.11.2026 · מחנה ג'ודו – שלבו מסלול בין האימונים. ב־22.11 הטיסה ב־12:05, אז ביום האחרון רק משהו קצר בבוקר.</p></div>
 <div class="box" style="background:#eef6ff"><h2>🩺 משימה · מדרסים (לא מסלול)</h2>
-<p><b>${CLINIC.n}</b><br>${CLINIC.e}<br>${CLINIC.d}</p>
-<p>🚕 מהמלון: ~${CLINIC.kmCar} ק"מ · ~${CLINIC.minCar} דק׳ נסיעה (ברגל ~6 ק"מ / ~80 דק׳ – לא מומלץ).</p>
-<a class="btn" href="https://www.google.com/maps/dir/?api=1&origin=${HOTEL.lat},${HOTEL.lng}&destination=${CLINIC.lat},${CLINIC.lng}&travelmode=driving" target="_blank" rel="noopener">🧭 ניווט למרפאה</a></div>
+<p><b>${CLINIC.n}</b><br><span class="todo">${CLINIC.status}</span></p>
+<p>🕐 ${CLINIC.hours}</p>
+<p>💰 ${CLINIC.price}</p>
+<p>🔬 ${CLINIC.tech}</p>
+<p>📅 ${CLINIC.timing}</p>
+<p>👟 ${CLINIC.shoes}</p>
+<p>📞 <a href="${CLINIC.walink}" target="_blank" rel="noopener">WhatsApp ${CLINIC.wa}</a> · <a href="mailto:${CLINIC.email}">${CLINIC.email}</a></p>
+${CLINIC.branches.map(b=>`<div class="note" style="margin:10px 0"><b>${b.rec?"⭐ ":""}${b.n}</b><br><span class="sub" dir="ltr" style="text-align:right;display:block">${b.e}</span>🚕 מהמלון: ~${b.km} ק"מ · ~${b.min} דק׳ ב־Bolt/רכב<a class="btn" href="https://www.google.com/maps/dir/?api=1&origin=${HOTEL.lat},${HOTEL.lng}&destination=${b.lat},${b.lng}&travelmode=driving" target="_blank" rel="noopener">🧭 ניווט ל${b.rec?"דינמו":"ליובליאנה"}</a></div>`).join("")}
+</div>
 `+ROUTES.map(r=>`<div class="box route"><h2>${r.icon} ${r.n}</h2>
 <p><b>${r.modeHe}</b> · ~${r.km} ק"מ · נסיעה/הליכה ~${fmtDur(r.min)} · יציאה מומלצת <b>${r.start}</b></p>
 <p class="sub">${r.tip}</p>
