@@ -29,3 +29,4 @@ label{display:block;margin:6px 0}.chk{display:flex;gap:10px;align-items:center}.
 .done{text-decoration:line-through;color:#999}.pp img{max-width:100%;border-radius:10px;margin-top:6px}
 nav button.on{color:#a3001b;font-weight:800}
 .flt{display:flex;gap:8px;margin-top:10px}.flt button{flex:1;padding:10px;border-radius:12px;border:1px solid #ccc;background:#fff;font-size:16px}.flt button.on{background:#a3001b;color:#fff}.srcs{display:flex;gap:8px}.srcs .btn{flex:1}.note{background:#eef6ff;padding:8px;border-radius:10px}nav button{font-size:12px}
+.route ol.rstops{padding-right:22px;margin:10px 0}.route ol.rstops li{margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid #f0e6da}.route ol.rstops li:last-child{border-bottom:0}.nx{color:#1a73e8;font-size:15px;font-weight:600}.route .srcs{margin-top:6px}

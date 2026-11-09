@@ -35,3 +35,54 @@ $("#near").onclick=()=>{if(!navigator.geolocation){GO.msg=`<div class="warn">ה�
 $("#gomsg").innerHTML=`<p class="note">⏳ מאתר מיקום…</p>`;
 navigator.geolocation.getCurrentPosition(p=>{GO.o={lat:p.coords.latitude,lng:p.coords.longitude};GO.msg=`<p class="note">📡 ממוין לפי <b>המיקום הנוכחי שלך</b> (עודכן ב-${new Date().toLocaleTimeString("he-IL",{hour:"2-digit",minute:"2-digit"})}, דיוק בערך ${Math.round(p.coords.accuracy)} מ').</p>`;goInit()},
 e=>{GO.msg=`<div class="warn">${e.code==1?"הגישה למיקום נחסמה. אפשר לאשר אותה בהגדרות הדפדפן או הטלפון.":e.code==3?"איתור המיקום לקח יותר מדי זמן. כדאי לנסות שוב בחוץ.":"המיקום לא זמין כרגע."}<br>בינתיים אפשר ללחוץ על „מרחק מהמלון“.</div>`;goInit()},{enableHighAccuracy:true,timeout:15000,maximumAge:60000})}}
+// --- day routes (OSRM routed-foot / routed-car, Nov 2026) ---
+const CLINIC={n:"Akhali Khedva · מדרסים",e:"Tsereteli Ave 2, Dinamo Arena gate 5",lat:41.7230,lng:44.7898,d:"אבחון מתוכנן 16–17.11, איסוף 20–21.11. זו משימה נפרדת, לא מסלול טיול.",kmCar:6.8,minCar:10};
+const ROUTES=[
+{id:"old",n:"עיר עתיקה · ריקה ונריקלה",icon:"🚶",mode:"walking",modeHe:"הליכה",start:"09:00",km:8.7,min:116,tip:"יום מלא. אפשר Bolt בחזרה מהמיידן אם עייפים (~10 דק׳ / ~2.5 ק\"מ).",stops:[
+{i:9,note:"ארוחת בוקר/צהריים גאורגית (בדקו איזה סניף)",nx:"1.7 ק\"מ · 23 דק׳"},
+{i:0,note:"גשר הולכי רגל מעל המטקווארי",nx:"0.3 ק\"מ · 4 דק׳"},
+{i:1,note:"פארק ליד תחנת הרכבל",nx:"0.7 ק\"מ · 9 דק׳"},
+{i:2,note:"עלייה ברכבל לנריקלה (כרטיס בנפרד)",nx:"0.7 ק\"מ · 9 דק׳ / או רכבל"},
+{i:3,note:"תצפית על העיר העתיקה",nx:"0.5 ק\"מ · 6 דק׳"},
+{i:4,note:"מסעדת גג עם נוף – הפסקת קפה/צהריים",nx:"0.6 ק\"מ · 8 דק׳"},
+{i:5,note:"חזית המרחץ הצבעוני באבנוטובני",nx:"0.2 ק\"מ · 3 דק׳"},
+{i:6,note:"מפל קטן בערוץ התאנים",nx:"0.6 ק\"מ · 7 דק׳"},
+{i:7,note:"שוק תת־קרקעי – ואז חזרה למלון",nx:"2.5 ק\"מ · 33 דק׳ / או Bolt"}
+]},
+{id:"ctr",n:"מרכז · כיכר החירות וגשר יבש",icon:"🚶",mode:"walking",modeHe:"הליכה (+Bolt אופציונלי)",start:"10:30",km:8.0,min:106,tip:"הקטע מהמלון לכיכר ארוך (~3 ק\"מ). אפשר Bolt לכיכר החירות ואז להמשיך ברגל.",stops:[
+{i:8,note:"כיכר מרכזית עם עמוד גאורגי הקדוש",nx:"0.1 ק\"מ · 2 דק׳"},
+{i:10,note:"צהריים/ערב – צלעות, חצ'פורי ויין",nx:"0.8 ק\"מ · 11 דק׳"},
+{i:11,note:"קפה/קינוח ליד הכיכר (בדקו סניף)",nx:"0.4 ק\"מ · 6 דק׳"},
+{i:12,note:"שוק עתיקות ומזכרות – עדיף עד שעות אחר־הצהריים",nx:"3.4 ק\"מ · 45 דק׳ / או Bolt למלון"}
+]},
+{id:"north",n:"כרוניקה · גארדניה ואתנוגרפר",icon:"🚕",mode:"driving",modeHe:"מונית / Bolt",start:"14:00",km:36.3,min:58,tip:"מסלול צפון העיר ברכב. אתנוגרפר בסוף – מתאים לארוחת ערב עם מופע (בדקו לוח).",stops:[
+{i:14,note:"גן ומשתלה עם בית קפה",nx:"7.8 ק\"מ · 14 דק׳ נסיעה"},
+{i:13,note:"אנדרטה + תצפית לים טביליסי",nx:"8.2 ק\"מ · 13 דק׳ נסיעה"},
+{i:16,note:"מסעדה גאורגית – ערב עם ריקודים (אם יש מופע)",nx:"14.4 ק\"מ · 19 דק׳ חזרה למלון"}
+]},
+{id:"mtsk",n:"חצי יום במצחטה",icon:"🚕",mode:"driving",modeHe:"מונית / Bolt",start:"09:00",km:56.4,min:68,tip:"נסיעה הלוך־חזור ~שעה ו־10 דק׳. השאירו 2–3 שעות באתר עצמו. חזרה עד הצהריים/אחה״צ.",stops:[
+{i:15,note:"קתדרלת סבטיצחובלי ושוק מזכרות. גלידת יין בסרטון – לא לילדים.",nx:"28.9 ק\"מ · 36 דק׳ חזרה למלון"}
+]}
+];
+function routeMaps(r){
+  const o=HOTEL.lat+","+HOTEL.lng;
+  const w=r.stops.map(s=>PLACES[s.i].lat+","+PLACES[s.i].lng).join("|");
+  return "https://www.google.com/maps/dir/?api=1&origin="+encodeURIComponent(o)+"&destination="+encodeURIComponent(o)+"&waypoints="+encodeURIComponent(w)+"&travelmode="+r.mode;
+}
+function fmtDur(m){const h=Math.floor(m/60),x=m%60;return h?h+" שע׳ "+x+" דק׳":x+" דק׳"}
+function routesView(){
+  return `<div class="box"><h2>🗺️ מסלולים מהמלון</h2>
+<p class="sub">כל מסלול מתחיל ונגמר ב־Hotel Residence Plaza. המרחקים והזמנים מבוססים על ניתוב הליכה/נסיעה אמיתי (OSRM). זמן ביקור בכל אתר לא כלול – הוסיפו לפי הקצב שלכם.</p>
+<p class="note">📅 16–22.11.2026 · מחנה ג'ודו – שלבו מסלול בין האימונים. ב־22.11 הטיסה ב־12:05, אז ביום האחרון רק משהו קצר בבוקר.</p></div>
+<div class="box" style="background:#eef6ff"><h2>🩺 משימה · מדרסים (לא מסלול)</h2>
+<p><b>${CLINIC.n}</b><br>${CLINIC.e}<br>${CLINIC.d}</p>
+<p>🚕 מהמלון: ~${CLINIC.kmCar} ק"מ · ~${CLINIC.minCar} דק׳ נסיעה (ברגל ~6 ק"מ / ~80 דק׳ – לא מומלץ).</p>
+<a class="btn" href="https://www.google.com/maps/dir/?api=1&origin=${HOTEL.lat},${HOTEL.lng}&destination=${CLINIC.lat},${CLINIC.lng}&travelmode=driving" target="_blank" rel="noopener">🧭 ניווט למרפאה</a></div>
+`+ROUTES.map(r=>`<div class="box route"><h2>${r.icon} ${r.n}</h2>
+<p><b>${r.modeHe}</b> · ~${r.km} ק"מ · נסיעה/הליכה ~${fmtDur(r.min)} · יציאה מומלצת <b>${r.start}</b></p>
+<p class="sub">${r.tip}</p>
+<ol class="rstops">${r.stops.map((s,idx)=>{const p=PLACES[s.i];return `<li><b>${idx+1}. ${p.k=="r"?"🍽️":"📍"} ${p.n}</b><br><span class="sub" dir="ltr" style="text-align:right">${p.e}</span><br>${s.note}${s.nx?`<br><span class="nx">↳ הלאה: ${s.nx}</span>`:""}<div class="srcs">${(p.s||[]).map((u,i)=>`<a class="btn alt" href="${u}" target="_blank" rel="noopener">🎬 מקור${p.s.length>1?" "+(i+1):""}</a>`).join("")}</div></li>`}).join("")}</ol>
+<p class="sub">↩ חזרה למלון בסוף המסלול.</p>
+<a class="btn" href="${routeMaps(r)}" target="_blank" rel="noopener">🧭 נווט במסלול</a>
+</div>`).join("")}
+function routesInit(){}

@@ -1,12 +1,12 @@
 const $=s=>document.querySelector(s),T="<span class='todo'>למלא</span>";
-const TABS=[["trip","🧳","טיול"],["fly","✈️","טיסות"],["judo","🥋","מחנה"],["go","📍","לבקר"],["ins","🛡️","ביטוח"],["pack","✅","ציוד"],["info","ℹ️","גאורגיה"],["pp","🛂","דרכונים"]];
+const TABS=[["trip","🧳","טיול"],["fly","✈️","טיסות"],["judo","🥋","מחנה"],["go","📍","לבקר"],["ins","🛡️","ביטוח"],["routes","🗺️","מסלול"],["info","ℹ️","גאורגיה"],["pp","🛂","דרכונים"]];
 const tel=(n,l)=>`<a class="btn" href="tel:${n.replace(/[^+\d*]/g,'')}">📞 ${l||n}</a>`;
 const V={
 trip:()=>`<div class="box"><h2>הטיול</h2><p>✈️ <b>16.11.2026</b> → 🏠 <b>22.11.2026</b> (7 ימים)</p><p>👨‍👩‍👦‍👦 ויטאלי, יעל (יוליה), אדם (2014), טום (2015)</p><p>🥋 מחנה אימונים בג'ודו – ${T}</p><p id="cd"></p></div>
 <div class="box hotel"><h2>🏨 מלון · Hotel Residence Plaza</h2><p>כתובת: 19 T Gujareti I St, Tbilisi 0144, Georgia<br>📍 טביליסי · לינה לכל המשפחה</p>
 <a class="btn" href="https://share.google/c8NfljzoHhfhLHZFu" target="_blank" rel="noopener">🗺️ Google Maps</a>
 <a class="btn alt" href="https://residenceplaza.ge/" target="_blank" rel="noopener">🌐 אתר המלון</a></div>
-<div class="box"><h2>🌤️ מזג אוויר – טביליסי</h2><div id="wx">טוען…</div><p class="sub">אם המחנה בעיר אחרת – לעדכן מיקום.</p></div>`,
+<div class="box"><h2>🌤️ מזג אוויר – טביליסי</h2><div id="wx">טוען…</div><p class="sub">אם המחנה בעיר אחרת – לעדכן מיקום.</p></div>`+V.packList(),
 fly:()=>`<div class="box"><h2>✈️ אל על · קוד הזמנה <span class="code">Y8YTF9</span></h2><p>מחלקה: Economy Lite · כל הארבעה באותה הזמנה</p><a class="btn alt" href="https://booking.elal.com/manage/login?lang=he">ניהול הזמנה / צ'ק-אין</a></div>
 <div class="box"><h2>הלוך – ב' 16.11.2026</h2><p><b>LY5107</b> · מופעל ע"י אל על עבור סאן דור<br>🛫 05:15 נתב"ג, <b>טרמינל 1</b><br>🛬 09:50 טביליסי (TBS) – שעון מקומי<br>⏱️ 2:35 שעות<br>💺 ויטאלי 47K · אדם 47J · יעל (יוליה) 48K · טום 48J</p></div>
 <div class="box"><h2>חזור – א' 22.11.2026</h2><p><b>LY5118</b> · מופעל ע"י KlasJet עבור סאן דור<br>🛫 12:05 טביליסי (TBS)<br>🛬 12:45 נתב"ג, <b>טרמינל 3</b> – שעון ישראל<br>⏱️ 2:40 שעות<br>💺 ויטאלי 10F · אדם 10E · יעל (יוליה) 09F · טום 09E</p></div>
@@ -20,8 +20,9 @@ ins:()=>`<div class="box"><h2>🛡️ ביטוח נסיעות – הפניקס S
 <p><b>איך מבטלים:</b><br>1. מבטלים מול אל על <b>מיד</b>.<br>2. אוספים אישור ביטול, קבלות ומסמכים רפואיים מלאים.<br>3. מגישים תביעה ב-fnx.co.il, במייל Traveld@fnx.co.il או בוואטסאפ 054-9893455.</p></div>
 <div class="box">${tel("03-7141000","שירות לקוחות 03-7141000")}<a class="btn alt" href="https://wa.me/972549893455">💬 תביעות בוואטסאפ 054-9893455</a><a class="btn alt" href="mailto:Traveld@fnx.co.il">✉️ Traveld@fnx.co.il</a>${tel("+972-3-7331177","🚑 חירום בחו\"ל 24/7 (MEDASSIS) +972-3-7331177")}<a class="btn alt" href="https://wa.me/972502241953">💬 MEDASSIS וואטסאפ 050-2241953</a><a class="btn alt" href="mailto:info@medassis.org">✉️ info@medassis.org</a>
 <a class="btn alt" href="https://www.fnx.co.il">אתר הפניקס</a><a class="btn alt" href="https://digital-content.fnx.co.il/sites/docs/polarchive/TravelInsurance/300304230_0724.pdf">📄 תנאי הפוליסה המלאים</a></div>`,
-pack:()=>{const L={"🥋 ג'ודו":["ג'ודוגי לבן ×2 לכל ילד","ג'ודוגי כחול (אם נדרש)","חגורות","כפכפים לאולם","בקבוק מים","תחבושות/טייפ","תעודת התאחדות / כרטיס ספורטאי","מגבת","בגדים להחלפה אחרי אימון"],"📄 מסמכים":["דרכונים ×4","פוליסת ביטוח","כרטיסי טיסה","כרטיס אשראי + מעט מזומן"],"🧥 בגדים (נובמבר קר)":["מעיל חם","כובע וכפפות","סוודרים","נעליים סגורות","פיג'מות","גרביים ותחתונים"],"💊 בריאות":["תרופות קבועות","משכך כאבים","פלסטרים","קרם שרירים / קרח"],"🔌 שונות":["מטענים","מתאם שקע (C/F – בדרך כלל לא צריך מישראל לתקע עגול)","מטען נייד","אוזניות"]};
-const s=JSON.parse(localStorage.pk||"{}");return Object.entries(L).map(([h,a])=>`<div class="box"><h2>${h}</h2>${a.map(i=>`<label class="chk ${s[i]?'done':''}"><input type="checkbox" data-k="${i}" ${s[i]?'checked':''}>${i}</label>`).join("")}</div>`).join("")},
+routes:()=>routesView(),
+packList:()=>{const L={"🥋 ג'ודו":["ג'ודוגי לבן ×2 לכל ילד","ג'ודוגי כחול (אם נדרש)","חגורות","כפכפים לאולם","בקבוק מים","תחבושות/טייפ","תעודת התאחדות / כרטיס ספורטאי","מגבת","בגדים להחלפה אחרי אימון"],"📄 מסמכים":["דרכונים ×4","פוליסת ביטוח","כרטיסי טיסה","כרטיס אשראי + מעט מזומן"],"🧥 בגדים (נובמבר קר)":["מעיל חם","כובע וכפפות","סוודרים","נעליים סגורות","פיג'מות","גרביים ותחתונים"],"💊 בריאות":["תרופות קבועות","משכך כאבים","פלסטרים","קרם שרירים / קרח"],"🔌 שונות":["מטענים","מתאם שקע (C/F – בדרך כלל לא צריך מישראל לתקע עגול)","מטען נייד","אוזניות"]};
+const s=JSON.parse(localStorage.pk||"{}");return `<div class="box"><h2>✅ ציוד לטיול</h2><p class="sub">רשימת ציוד (עברה מטאב ציוד). הסימונים נשמרים בטלפון.</p></div>`+Object.entries(L).map(([h,a])=>`<div class="box"><h2>${h}</h2>${a.map(i=>`<label class="chk ${s[i]?'done':''}"><input type="checkbox" data-k="${i}" ${s[i]?'checked':''}>${i}</label>`).join("")}</div>`).join("")},
 info:()=>`<div class="box"><h2>🚨 חירום</h2><p>מספר חירום אחיד: <b>112</b> (משטרה, אמבולנס, כבאות)</p>${tel("112")}</div>
 <div class="box"><h2>ℹ️ מידע שימושי</h2><p>💱 מטבע: לארי גאורגי (GEL ₾). כרטיסי אשראי מקובלים ברוב המקומות.<br>🔌 חשמל: 220V, שקעים מסוג C/F (תקע ישראלי עגול בדרך כלל מתאים).<br>🕐 שעון: UTC+4 – שעתיים לפני ישראל בנובמבר.<br>🛂 ישראלים: כניסה ללא ויזה (עד שנה); דרכון בתוקף.<br>🗣️ שפה: גאורגית; רוסית ואנגלית מובנות לרוב.<br>🌡️ טביליסי בנובמבר: בערך 3–13°C.</p></div>
 <div class="box"><h2>🇮🇱 שגרירות ישראל בטביליסי</h2><a class="btn alt" href="https://embassies.gov.il/tbilisi">אתר השגרירות</a><p class="sub">טלפון חירום כללי של משרד החוץ: <a href="tel:+97225303155">+972-2-5303155</a></p></div>`,
@@ -64,8 +65,9 @@ function show(d,off){el.innerHTML=`<p>עכשיו: ${WI(d.current.weather_code)} 
 // ---------- router ----------
 function go(t){location.hash=t;$("#main").innerHTML=V[t]();$("#tabs").innerHTML=TABS.map(([k,i,l])=>`<button class="${k==t?'on':''}" data-t="${k}">${i}<br>${l}</button>`).join("");$("#tabs").querySelectorAll("button").forEach(b=>b.onclick=()=>go(b.dataset.t));scrollTo(0,0);
 if(t=="trip"){wx();const n=Math.ceil((new Date("2026-11-16")-new Date())/864e5);$("#cd").textContent=n>0?`⏳ עוד ${n} ימים לטיסה`:""}
-if(t=="pack")document.querySelectorAll("[data-k]").forEach(x=>x.onchange=()=>{const s=JSON.parse(localStorage.pk||"{}");s[x.dataset.k]=x.checked;localStorage.pk=JSON.stringify(s);x.parentNode.classList.toggle("done",x.checked)});
+if(t=="trip")document.querySelectorAll("[data-k]").forEach(x=>x.onchange=()=>{const s=JSON.parse(localStorage.pk||"{}");s[x.dataset.k]=x.checked;localStorage.pk=JSON.stringify(s);x.parentNode.classList.toggle("done",x.checked)});
 if(t=="pp"){ppInit();vault()}
-if(t=="go")goInit()}
+if(t=="go")goInit()
+if(t=="routes")routesInit()}
 go((location.hash.slice(1) in V)?location.hash.slice(1):"trip");
 if("serviceWorker"in navigator)navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>r.update());
