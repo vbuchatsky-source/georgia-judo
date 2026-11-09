@@ -70,3 +70,5 @@ header h1{font-size:19px}
 .frow.stale .fi,.frow.none .fi{color:#999}.frow.none .fav{opacity:.5}
 .fbtns{display:flex;gap:8px}.fbtns .btn{flex:1;font-size:15px;padding:11px 6px;margin-top:0}
 .fam .btn{margin-top:12px}
+
+nav button,nav button.on{font-size:14px;padding:10px 2px;line-height:1.35}

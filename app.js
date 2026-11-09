@@ -1,17 +1,18 @@
 const $=s=>document.querySelector(s),T="<span class='todo'>למלא</span>";
-const TABS=[["trip","🧳","טיול"],["fam","👨‍👩‍👦‍👦","איפה כולם"],["fly","✈️","טיסות"],["judo","🥋","מחנה"],["go","📍","לבקר"],["routes","🗺️","מסלול"],["info","ℹ️","גאורגיה"],["pp","🛂","דרכונים"]];
+const TABS=[["info","🇬🇪","גאורגיה"],["trip","🧳","טיול"],["fam","👨‍👩‍👦‍👦","איפה כולם"],["fly","✈️","טיסות"],["routes","🗺️","מסלול"]];
 const tel=(n,l)=>`<a class="btn" href="tel:${n.replace(/[^+\d*]/g,'')}">📞 ${l||n}</a>`;
 const V={
 trip:()=>`<div class="box"><h2>הטיול</h2><p>✈️ <b>16.11.2026</b> → 🏠 <b>22.11.2026</b> (7 ימים)</p><p>👨‍👩‍👦‍👦 ויטאלי, יעל (יוליה), אדם (2014), טום (2015)</p><p>🥋 מחנה אימונים בג'ודו – ${T}</p><p id="cd"></p></div>
 <div class="box hotel"><h2>🏨 מלון · Hotel Residence Plaza</h2><p>כתובת: 19 T Gujareti I St, Tbilisi 0144, Georgia<br>📍 טביליסי · לינה לכל המשפחה</p>
 <a class="btn" href="https://share.google/c8NfljzoHhfhLHZFu" target="_blank" rel="noopener">🗺️ Google Maps</a>
 <a class="btn alt" href="https://residenceplaza.ge/" target="_blank" rel="noopener">🌐 אתר המלון</a></div>
-<div class="box"><h2>🌤️ מזג אוויר – טביליסי</h2><div id="wx">טוען…</div><p class="sub">אם המחנה בעיר אחרת – לעדכן מיקום.</p></div>`+V.packList(),
-fly:()=>`<div class="box"><h2>✈️ אל על · קוד הזמנה <span class="code">Y8YTF9</span></h2><p>מחלקה: Economy Lite · כל הארבעה באותה הזמנה</p><a class="btn alt" href="https://booking.elal.com/manage/login?lang=he">ניהול הזמנה / צ'ק-אין</a></div>
+<div class="box"><h2>🌤️ מזג אוויר – טביליסי</h2><div id="wx">טוען…</div><p class="sub">אם המחנה בעיר אחרת – לעדכן מיקום.</p></div>`,
+fly:()=>V.flySec()+V.ppSec(),
+flySec:()=>`<div class="box"><h2>✈️ אל על · קוד הזמנה <span class="code">Y8YTF9</span></h2><p>מחלקה: Economy Lite · כל הארבעה באותה הזמנה</p><a class="btn alt" href="https://booking.elal.com/manage/login?lang=he">ניהול הזמנה / צ'ק-אין</a></div>
 <div class="box"><h2>הלוך – ב' 16.11.2026</h2><p><b>LY5107</b> · מופעל ע"י אל על עבור סאן דור<br>🛫 05:15 נתב"ג, <b>טרמינל 1</b><br>🛬 09:50 טביליסי (TBS) – שעון מקומי<br>⏱️ 2:35 שעות<br>💺 ויטאלי 47K · אדם 47J · יעל (יוליה) 48K · טום 48J</p></div>
 <div class="box"><h2>חזור – א' 22.11.2026</h2><p><b>LY5118</b> · מופעל ע"י KlasJet עבור סאן דור<br>🛫 12:05 טביליסי (TBS)<br>🛬 12:45 נתב"ג, <b>טרמינל 3</b> – שעון ישראל<br>⏱️ 2:40 שעות<br>💺 ויטאלי 10F · אדם 10E · יעל (יוליה) 09F · טום 09E</p></div>
 <div class="box"><h2>🧳 כבודה (Lite)</h2><p>לכל נוסע: תיק אישי מתחת למושב + טרולי עד 8 ק"ג (נשלח לבטן המטוס ללא עלות). <b>מזוודה לבטן לא כלולה (0PC)</b> – אם צריך לציוד ג'ודו, להוסיף מראש באתר (זול יותר מבשדה).</p><p class="sub">מקור: אישורי הזמנה של אל על, 29.9.2026. ההלוך יוצא מטרמינל 1 והחזרה נוחתת בטרמינל 3.</p></div>`,
-judo:()=>`<div class="box"><h2>🥋 מחנה האימונים</h2><p>שם המחנה / מועדון: ${T}<br>עיר ומקום לינה: טביליסי · <b>Hotel Residence Plaza</b><br>כתובת: 19 T Gujareti I St, Tbilisi 0144<br>איש קשר + טלפון: ${T}<br>לוח אימונים: ${T}<br>הסעה משדה התעופה: ${T}</p>
+judoSec:()=>`<div class="box"><h2>🥋 מחנה האימונים</h2><p>שם המחנה / מועדון: ${T}<br>עיר ומקום לינה: טביליסי · <b>Hotel Residence Plaza</b><br>כתובת: 19 T Gujareti I St, Tbilisi 0144<br>איש קשר + טלפון: ${T}<br>לוח אימונים: ${T}<br>הסעה משדה התעופה: ${T}</p>
 <a class="btn" href="https://share.google/c8NfljzoHhfhLHZFu" target="_blank" rel="noopener">🗺️ Google Maps למלון</a>
 <a class="btn alt" href="https://residenceplaza.ge/" target="_blank" rel="noopener">🌐 residenceplaza.ge</a></div>`,
 ins:()=>`<div class="box"><h2>🛡️ ביטוח נסיעות – הפניקס SMART TRAVEL</h2><p>פוליסה: <span class="code">26/096/667/8762601</span><br>תקופה: 16/11/2026–22/11/2026 · יעד: גאורגיה<br>מחיר כולל: 150$ (תשלום אחד)<br>מבוטחים: ויטאלי, יעל, אדם, טום בוצ'אצקי</p>
@@ -22,13 +23,10 @@ ins:()=>`<div class="box"><h2>🛡️ ביטוח נסיעות – הפניקס S
 <a class="btn alt" href="https://www.fnx.co.il">אתר הפניקס</a><a class="btn alt" href="https://digital-content.fnx.co.il/sites/docs/polarchive/TravelInsurance/300304230_0724.pdf">📄 תנאי הפוליסה המלאים</a></div>`,
 routes:()=>routesView(),
 fam:()=>famView(),
-packList:()=>{const L={"🥋 ג'ודו":["ג'ודוגי לבן ×2 לכל ילד","ג'ודוגי כחול (אם נדרש)","חגורות","כפכפים לאולם","בקבוק מים","תחבושות/טייפ","תעודת התאחדות / כרטיס ספורטאי","מגבת","בגדים להחלפה אחרי אימון"],"📄 מסמכים":["דרכונים ×4","פוליסת ביטוח","כרטיסי טיסה","כרטיס אשראי + מעט מזומן"],"🧥 בגדים (נובמבר קר)":["מעיל חם","כובע וכפפות","סוודרים","נעליים סגורות","פיג'מות","גרביים ותחתונים"],"💊 בריאות":["תרופות קבועות","משכך כאבים","פלסטרים","קרם שרירים / קרח"],"🔌 שונות":["מטענים","מתאם שקע (C/F – בדרך כלל לא צריך מישראל לתקע עגול)","מטען נייד","אוזניות"]};
-const s=JSON.parse(localStorage.pk||"{}");return `<div class="box"><h2>✅ ציוד לטיול</h2><p class="sub">רשימת ציוד (עברה מטאב ציוד). הסימונים נשמרים בטלפון.</p></div>`+Object.entries(L).map(([h,a])=>`<div class="box"><h2>${h}</h2>${a.map(i=>`<label class="chk ${s[i]?'done':''}"><input type="checkbox" data-k="${i}" ${s[i]?'checked':''}>${i}</label>`).join("")}</div>`).join("")},
 info:()=>`<div class="box"><h2>🚨 חירום</h2><p>מספר חירום אחיד: <b>112</b> (משטרה, אמבולנס, כבאות)</p>${tel("112")}</div>
 <div class="box"><h2>ℹ️ מידע שימושי</h2><p>💱 מטבע: לארי גאורגי (GEL ₾). כרטיסי אשראי מקובלים ברוב המקומות.<br>🔌 חשמל: 220V, שקעים מסוג C/F (תקע ישראלי עגול בדרך כלל מתאים).<br>🕐 שעון: UTC+4 – שעתיים לפני ישראל בנובמבר.<br>🛂 ישראלים: כניסה ללא ויזה (עד שנה); דרכון בתוקף.<br>🗣️ שפה: גאורגית; רוסית ואנגלית מובנות לרוב.<br>🌡️ טביליסי בנובמבר: בערך 3–13°C.</p></div>
 <div class="box"><h2>🇮🇱 שגרירות ישראל בטביליסי</h2><a class="btn alt" href="https://embassies.gov.il/tbilisi">אתר השגרירות</a><p class="sub">טלפון חירום כללי של משרד החוץ: <a href="tel:+97225303155">+972-2-5303155</a></p></div>`,
-go:()=>goView(),
-pp:()=>`<div class="box"><h2>🔐 צילומי דרכונים (מוצפנים)</h2><div id="vault"></div></div><div class="box"><h2>🛂 הערות נוספות – רק במכשיר הזה</h2><p class="sub">הפרטים והתמונות נשמרים רק בדפדפן של הטלפון הזה (IndexedDB) ולא נשלחים לשום מקום. ניקוי נתוני הדפדפן ימחק אותם. מומלץ להגדיר PIN – אז הכל מוצפן (AES-GCM).</p><div id="ppb">טוען…</div></div>`};
+ppSec:()=>`<div class="box"><h2>🔐 צילומי דרכונים (מוצפנים)</h2><div id="vault"></div></div><div class="box"><h2>🛂 הערות נוספות – רק במכשיר הזה</h2><p class="sub">הפרטים והתמונות נשמרים רק בדפדפן של הטלפון הזה (IndexedDB) ולא נשלחים לשום מקום. ניקוי נתוני הדפדפן ימחק אותם. מומלץ להגדיר PIN – אז הכל מוצפן (AES-GCM).</p><div id="ppb">טוען…</div></div>`};
 // ---------- passports (local only) ----------
 const PEOPLE=["ויטאלי","יעל (יוליה)","אדם","טום"];let KEY=null,PPD=null;
 const db=()=>new Promise((r,j)=>{const q=indexedDB.open("georgia-pp",1);q.onupgradeneeded=()=>q.result.createObjectStore("s");q.onsuccess=()=>r(q.result);q.onerror=j});
@@ -64,15 +62,14 @@ const WI=c=>c==0?"☀️":c<3?"🌤️":c<4?"☁️":c<50?"🌫️":c<70?"🌧�
 async function wx(){const el=$("#wx");if(!el)return;try{const r=await fetch("https://api.open-meteo.com/v1/forecast?latitude=41.7151&longitude=44.8271&current=temperature_2m,weather_code&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=Asia%2FTbilisi&forecast_days=16");const d=await r.json();localStorage.wx=JSON.stringify(d);show(d)}catch(e){if(localStorage.wx)show(JSON.parse(localStorage.wx),1);else el.textContent="אין חיבור"}
 function show(d,off){el.innerHTML=`<p>עכשיו: ${WI(d.current.weather_code)} <b>${Math.round(d.current.temperature_2m)}°</b>${off?" (נתון שמור)":""}</p><div style="display:flex;gap:8px;overflow-x:auto">`+d.daily.time.map((t,i)=>`<div style="min-width:70px;text-align:center;padding:6px;border-radius:10px;background:${t>="2026-11-16"&&t<="2026-11-22"?"#ffd9de":"#f3eee7"}">${t.slice(8)}/${t.slice(5,7)}<br>${WI(d.daily.weather_code[i])}<br>${Math.round(d.daily.temperature_2m_max[i])}°/${Math.round(d.daily.temperature_2m_min[i])}°<br><small>💧${d.daily.precipitation_probability_max[i]}%</small></div>`).join("")+"</div>"}}
 // ---------- router ----------
-function go(t){location.hash=t;$("#main").innerHTML=V[t]();$("#tabs").innerHTML=TABS.map(([k,i,l])=>`<button class="${k==t?'on':''}" data-t="${k}">${i}<br>${l}</button>`).join("");$("#tabs").querySelectorAll("button").forEach(b=>b.onclick=()=>go(b.dataset.t));scrollTo(0,0);
+const ALIAS={judo:"info",go:"info",pp:"fly"},TABK=["info","trip","fam","fly","routes","ins"];
+function go(t){t=ALIAS[t]||t;if(!TABK.includes(t))t="info";location.hash=t;$("#main").innerHTML=V[t]();$("#tabs").innerHTML=TABS.map(([k,i,l])=>`<button class="${k==t?'on':''}" data-t="${k}">${i}<br>${l}</button>`).join("");$("#tabs").querySelectorAll("button").forEach(b=>b.onclick=()=>go(b.dataset.t));scrollTo(0,0);
 if(t=="trip"){wx();const n=Math.ceil((new Date("2026-11-16")-new Date())/864e5);$("#cd").textContent=n>0?`⏳ עוד ${n} ימים לטיסה`:""}
-if(t=="trip")document.querySelectorAll("[data-k]").forEach(x=>x.onchange=()=>{const s=JSON.parse(localStorage.pk||"{}");s[x.dataset.k]=x.checked;localStorage.pk=JSON.stringify(s);x.parentNode.classList.toggle("done",x.checked)});
-if(t=="pp"){ppInit();vault()}
-if(t=="go")goInit()
+if(t=="fly"){ppInit();vault()}
 if(t=="routes")routesInit()
 if(t=="fam")famInit()}
-const _info=V.info;V.info=()=>_info()+`<div class="box"><h2>🛡️ ביטוח נסיעות</h2><button class="btn alt" onclick="go('ins')">פרטי הביטוח – הפניקס</button></div>`;
+const _info=V.info;V.info=()=>_info()+V.judoSec()+`<div class="box"><h2>🛡️ ביטוח נסיעות</h2><button class="btn alt" onclick="go('ins')">פרטי הביטוח – הפניקס</button></div>`;
 const JOINED=famJoinFromHash();
-go(JOINED?"fam":(location.hash.slice(1) in V)?location.hash.slice(1):"trip");
+go(JOINED?"fam":location.hash.slice(1)||"info");
 famPill();if(!fs.me)famPicker();else famStart();
 if("serviceWorker"in navigator)navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>r.update());
