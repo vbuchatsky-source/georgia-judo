@@ -1,5 +1,5 @@
 const $=s=>document.querySelector(s),T="<span class='todo'>למלא</span>";
-const TABS=[["trip","🧳","טיול"],["fly","✈️","טיסות"],["judo","🥋","מחנה"],["go","📍","לבקר"],["ins","🛡️","ביטוח"],["routes","🗺️","מסלול"],["info","ℹ️","גאורגיה"],["pp","🛂","דרכונים"]];
+const TABS=[["trip","🧳","טיול"],["fam","👨‍👩‍👦‍👦","איפה כולם"],["fly","✈️","טיסות"],["judo","🥋","מחנה"],["go","📍","לבקר"],["routes","🗺️","מסלול"],["info","ℹ️","גאורגיה"],["pp","🛂","דרכונים"]];
 const tel=(n,l)=>`<a class="btn" href="tel:${n.replace(/[^+\d*]/g,'')}">📞 ${l||n}</a>`;
 const V={
 trip:()=>`<div class="box"><h2>הטיול</h2><p>✈️ <b>16.11.2026</b> → 🏠 <b>22.11.2026</b> (7 ימים)</p><p>👨‍👩‍👦‍👦 ויטאלי, יעל (יוליה), אדם (2014), טום (2015)</p><p>🥋 מחנה אימונים בג'ודו – ${T}</p><p id="cd"></p></div>
@@ -21,6 +21,7 @@ ins:()=>`<div class="box"><h2>🛡️ ביטוח נסיעות – הפניקס S
 <div class="box">${tel("03-7141000","שירות לקוחות 03-7141000")}<a class="btn alt" href="https://wa.me/972549893455">💬 תביעות בוואטסאפ 054-9893455</a><a class="btn alt" href="mailto:Traveld@fnx.co.il">✉️ Traveld@fnx.co.il</a>${tel("+972-3-7331177","🚑 חירום בחו\"ל 24/7 (MEDASSIS) +972-3-7331177")}<a class="btn alt" href="https://wa.me/972502241953">💬 MEDASSIS וואטסאפ 050-2241953</a><a class="btn alt" href="mailto:info@medassis.org">✉️ info@medassis.org</a>
 <a class="btn alt" href="https://www.fnx.co.il">אתר הפניקס</a><a class="btn alt" href="https://digital-content.fnx.co.il/sites/docs/polarchive/TravelInsurance/300304230_0724.pdf">📄 תנאי הפוליסה המלאים</a></div>`,
 routes:()=>routesView(),
+fam:()=>famView(),
 packList:()=>{const L={"🥋 ג'ודו":["ג'ודוגי לבן ×2 לכל ילד","ג'ודוגי כחול (אם נדרש)","חגורות","כפכפים לאולם","בקבוק מים","תחבושות/טייפ","תעודת התאחדות / כרטיס ספורטאי","מגבת","בגדים להחלפה אחרי אימון"],"📄 מסמכים":["דרכונים ×4","פוליסת ביטוח","כרטיסי טיסה","כרטיס אשראי + מעט מזומן"],"🧥 בגדים (נובמבר קר)":["מעיל חם","כובע וכפפות","סוודרים","נעליים סגורות","פיג'מות","גרביים ותחתונים"],"💊 בריאות":["תרופות קבועות","משכך כאבים","פלסטרים","קרם שרירים / קרח"],"🔌 שונות":["מטענים","מתאם שקע (C/F – בדרך כלל לא צריך מישראל לתקע עגול)","מטען נייד","אוזניות"]};
 const s=JSON.parse(localStorage.pk||"{}");return `<div class="box"><h2>✅ ציוד לטיול</h2><p class="sub">רשימת ציוד (עברה מטאב ציוד). הסימונים נשמרים בטלפון.</p></div>`+Object.entries(L).map(([h,a])=>`<div class="box"><h2>${h}</h2>${a.map(i=>`<label class="chk ${s[i]?'done':''}"><input type="checkbox" data-k="${i}" ${s[i]?'checked':''}>${i}</label>`).join("")}</div>`).join("")},
 info:()=>`<div class="box"><h2>🚨 חירום</h2><p>מספר חירום אחיד: <b>112</b> (משטרה, אמבולנס, כבאות)</p>${tel("112")}</div>
@@ -68,6 +69,10 @@ if(t=="trip"){wx();const n=Math.ceil((new Date("2026-11-16")-new Date())/864e5);
 if(t=="trip")document.querySelectorAll("[data-k]").forEach(x=>x.onchange=()=>{const s=JSON.parse(localStorage.pk||"{}");s[x.dataset.k]=x.checked;localStorage.pk=JSON.stringify(s);x.parentNode.classList.toggle("done",x.checked)});
 if(t=="pp"){ppInit();vault()}
 if(t=="go")goInit()
-if(t=="routes")routesInit()}
-go((location.hash.slice(1) in V)?location.hash.slice(1):"trip");
+if(t=="routes")routesInit()
+if(t=="fam")famInit()}
+const _info=V.info;V.info=()=>_info()+`<div class="box"><h2>🛡️ ביטוח נסיעות</h2><button class="btn alt" onclick="go('ins')">פרטי הביטוח – הפניקס</button></div>`;
+const JOINED=famJoinFromHash();
+go(JOINED?"fam":(location.hash.slice(1) in V)?location.hash.slice(1):"trip");
+famPill();if(!fs.me)famPicker();else famStart();
 if("serviceWorker"in navigator)navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>r.update());
