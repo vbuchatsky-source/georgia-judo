@@ -101,8 +101,36 @@ ${CLINIC.branches.map(b=>`<div class="note" style="margin:10px 0"><b>${b.rec?"�
 `+ROUTES.map(r=>`<div class="box route"><h2>${r.icon} ${r.n}</h2>
 <p><b>${r.modeHe}</b> · ~${r.km} ק"מ · נסיעה/הליכה ~${fmtDur(r.min)} · יציאה מומלצת <b>${r.start}</b></p>
 <p class="sub">${r.tip}</p>
-<ol class="rstops">${r.stops.map((s,idx)=>{const p=PLACES[s.i];return `<li><b>${idx+1}. ${p.k=="r"?"🍽️":"📍"} ${p.n}</b><br><span class="sub" dir="ltr" style="text-align:right">${p.e}</span><br>${s.note}${s.nx?`<br><span class="nx">↳ הלאה: ${s.nx}</span>`:""}<div class="srcs">${(p.s||[]).map((u,i)=>`<a class="btn alt" href="${u}" target="_blank" rel="noopener">🎬 מקור${p.s.length>1?" "+(i+1):""}</a>`).join("")}</div></li>`}).join("")}</ol>
+<div class="stops">${r.stops.map((s,idx)=>stopCard(r,s,idx)).join("")}</div>
 <p class="sub">↩ חזרה למלון בסוף המסלול.</p>
 <a class="btn" href="${routeMaps(r)}" target="_blank" rel="noopener">🧭 נווט במסלול</a>
 </div>`).join("")}
-function routesInit(){}
+const esc=t=>String(t).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const STOPEMO=["🌉","🌳","🚡","🗽","🍷","♨️","💦","🛍️","🏛️","🍲","🍖","🍰","🖼️","🗿","🌷","⛪","💃"];
+function gallery(i){const L=photosOf(i);
+  if(!L.length)return `<div class="gal none"><span>${STOPEMO[i]||"📍"}</span><small>אין עדיין תמונות חופשיות למקום הזה – לחצו „נווט“ לראות תמונות ב-Google Maps</small></div>`;
+  return `<div class="gal" data-p="${i}"><div class="gtrack">${L.map((p,k)=>`<img src="${p[0]}" ${k?'loading="lazy"':''} decoding="async" alt="${esc(PLACES[i].e)} – תמונה ${k+1}" data-k="${k}">`).join("")}</div>
+<span class="gcount">📷 ${L.length}</span>${L.length>1?`<div class="dots">${L.map((_,k)=>`<i class="${k?"":"on"}"></i>`).join("")}</div>`:""}</div>
+<p class="credit">צילום: ${esc([...new Set(L.map(p=>p[1].split(" · ").pop()))].join(", "))}${L.length<4?` · נמצאו רק ${L.length==1?"תמונה אחת":L.length+" תמונות"}`:""} · הקישו להגדלה</p>`}
+function stopCard(r,s,idx){const p=PLACES[s.i];
+  return `<div class="stop">${gallery(s.i)}<div class="sb"><div class="sh"><span class="num">${idx+1}</span><div><h3>${STOPEMO[s.i]||"📍"} ${p.n}</h3><span class="sub en" dir="ltr">${p.e}</span></div></div>
+<p class="snote">${s.note}</p>
+<div class="srcs"><a class="btn" href="${nav(p).replace("walking",r.mode)}" target="_blank" rel="noopener">🧭 נווט</a>${(p.s||[]).map((u,i)=>`<a class="btn alt" href="${u}" target="_blank" rel="noopener">🎬 מקור${p.s.length>1?" "+(i+1):""}</a>`).join("")}</div></div>
+${s.nx?`<div class="nx">⬇️ הלאה: ${s.nx}</div>`:""}</div>`}
+function routesInit(){
+  document.querySelectorAll(".gal[data-p]").forEach(g=>{const tr=g.querySelector(".gtrack"),dots=[...g.querySelectorAll(".dots i")],imgs=[...tr.children];
+    if(dots.length&&"IntersectionObserver" in window){const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.intersectionRatio>.6){const k=+e.target.dataset.k;dots.forEach((d,j)=>d.classList.toggle("on",j==k))}}),{root:tr,threshold:[.6]});imgs.forEach(im=>io.observe(im))}
+    imgs.forEach(im=>{im.onclick=()=>openLB(+g.dataset.p,+im.dataset.k);im.onerror=()=>{im.remove()}})})}
+function openLB(i,k){const L=photosOf(i),p=PLACES[i];let cur=k;
+  const lb=document.createElement("div");lb.id="lb";lb.innerHTML=`<div class="lbtop"><button class="lbx" aria-label="סגירה">✕</button><b>${p.n}</b><span class="lbc"></span></div>
+<div class="lbtrack">${L.map((ph,j)=>`<figure data-k="${j}"><img src="${ph[0]}" alt="" decoding="async"></figure>`).join("")}</div>
+<button class="lbn lbprev" dir="ltr" aria-label="הקודם">›</button><button class="lbn lbnext" dir="ltr" aria-label="הבא">‹</button>
+<div class="lbcap"></div>`;document.body.appendChild(lb);document.body.style.overflow="hidden";
+  const tr=lb.querySelector(".lbtrack"),figs=[...tr.children];
+  const upd=()=>{lb.querySelector(".lbc").textContent=(cur+1)+" / "+L.length;const ph=L[cur];lb.querySelector(".lbcap").innerHTML=`צילום: <a href="${ph[2]}" target="_blank" rel="noopener">${esc(ph[1])}</a>`;lb.querySelector(".lbprev").style.visibility=cur?"visible":"hidden";lb.querySelector(".lbnext").style.visibility=cur<L.length-1?"visible":"hidden"};
+  const to=(j,sm)=>{cur=Math.max(0,Math.min(L.length-1,j));figs[cur].scrollIntoView({behavior:sm?"smooth":"auto",inline:"center",block:"nearest"});upd()};
+  const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.intersectionRatio>.6){cur=+e.target.dataset.k;upd()}}),{root:tr,threshold:[.6]});figs.forEach(f=>io.observe(f));
+  const close=()=>{io.disconnect();lb.remove();document.body.style.overflow="";document.removeEventListener("keydown",key)};
+  const key=e=>{if(e.key=="Escape")close();if(e.key=="ArrowLeft")to(cur+1,1);if(e.key=="ArrowRight")to(cur-1,1)};document.addEventListener("keydown",key);
+  lb.querySelector(".lbx").onclick=close;lb.querySelector(".lbprev").onclick=()=>to(cur-1,1);lb.querySelector(".lbnext").onclick=()=>to(cur+1,1);
+  requestAnimationFrame(()=>to(k,0))}
