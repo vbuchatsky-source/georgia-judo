@@ -22,7 +22,9 @@ const PACK_DEF=[
     {id:"cl-warm",t:"שכבות חמות"},
     {id:"cl-umb",t:"מטריה"},
     {id:"cl-socks",t:"גרביים ותחתונים"},
-    {id:"cl-change",t:"בגדים להחלפה אחרי אימון"}
+    {id:"cl-change",t:"בגדים להחלפה אחרי אימון"},
+    {id:"cl-swim",t:"בגד ים"},
+    {id:"cl-gym",t:"בגדי חדר כושר"}
   ]},
   {id:"elec",title:"🔌 אלקטרוניקה",items:[
     {id:"el-hp",t:"אוזניות של ויטאלי"},
