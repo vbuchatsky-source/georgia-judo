@@ -3,6 +3,7 @@ const TABS=[["info","🇬🇪","גאורגיה"],["trip","🧳","טיול"],["fa
 const tel=(n,l)=>`<a class="btn" href="tel:${n.replace(/[^+\d*]/g,'')}">📞 ${l||n}</a>`;
 const V={
 trip:()=>`<div class="box"><h2>הטיול</h2><p>✈️ <b>16.11.2026</b> → 🏠 <b>22.11.2026</b> (7 ימים)</p><p>👨‍👩‍👦‍👦 ויטאלי, יעל (יוליה), אדם (2014), טום (2015)</p><p>🥋 מחנה אימונים בג'ודו – ${T}</p><p id="cd"></p></div>
+<div class="box"><h2>✅ רשימת ציוד</h2><button class="btn" onclick="go('pack')">לרשימה</button></div>
 <div class="box hotel"><h2>🏨 מלון · Hotel Residence Plaza</h2><p>כתובת: 19 T Gujareti I St, Tbilisi 0144, Georgia<br>📍 טביליסי · לינה לכל המשפחה</p>
 <a class="btn" href="https://share.google/c8NfljzoHhfhLHZFu" target="_blank" rel="noopener">🗺️ Google Maps</a>
 <a class="btn alt" href="https://residenceplaza.ge/" target="_blank" rel="noopener">🌐 אתר המלון</a></div>
@@ -62,13 +63,15 @@ const WI=c=>c==0?"☀️":c<3?"🌤️":c<4?"☁️":c<50?"🌫️":c<70?"🌧�
 async function wx(){const el=$("#wx");if(!el)return;try{const r=await fetch("https://api.open-meteo.com/v1/forecast?latitude=41.7151&longitude=44.8271&current=temperature_2m,weather_code&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=Asia%2FTbilisi&forecast_days=16");const d=await r.json();localStorage.wx=JSON.stringify(d);show(d)}catch(e){if(localStorage.wx)show(JSON.parse(localStorage.wx),1);else el.textContent="אין חיבור"}
 function show(d,off){el.innerHTML=`<p>עכשיו: ${WI(d.current.weather_code)} <b>${Math.round(d.current.temperature_2m)}°</b>${off?" (נתון שמור)":""}</p><div style="display:flex;gap:8px;overflow-x:auto">`+d.daily.time.map((t,i)=>`<div style="min-width:70px;text-align:center;padding:6px;border-radius:10px;background:${t>="2026-11-16"&&t<="2026-11-22"?"#ffd9de":"#f3eee7"}">${t.slice(8)}/${t.slice(5,7)}<br>${WI(d.daily.weather_code[i])}<br>${Math.round(d.daily.temperature_2m_max[i])}°/${Math.round(d.daily.temperature_2m_min[i])}°<br><small>💧${d.daily.precipitation_probability_max[i]}%</small></div>`).join("")+"</div>"}}
 // ---------- router ----------
-const ALIAS={judo:"info",go:"info",pp:"fly"},TABK=["info","trip","fam","fly","routes","ins"];
+const ALIAS={judo:"info",go:"info",pp:"fly"},TABK=["info","trip","fam","fly","routes","ins","pack"];
 function go(t){t=ALIAS[t]||t;if(!TABK.includes(t))t="info";location.hash=t;$("#main").innerHTML=V[t]();$("#tabs").innerHTML=TABS.map(([k,i,l])=>`<button class="${k==t?'on':''}" data-t="${k}">${i}<br>${l}</button>`).join("");$("#tabs").querySelectorAll("button").forEach(b=>b.onclick=()=>go(b.dataset.t));scrollTo(0,0);
 if(t=="trip"){wx();const n=Math.ceil((new Date("2026-11-16")-new Date())/864e5);$("#cd").textContent=n>0?`⏳ עוד ${n} ימים לטיסה`:""}
 if(t=="fly"){ppInit();vault()}
 if(t=="routes")routesInit()
-if(t=="fam")famInit()}
+if(t=="fam")famInit()
+if(t=="pack")packInit()}
 const _info=V.info;V.hotelNav=()=>`<div class="box hotel"><h2>🏨 Hotel Residence Plaza</h2><p>19 T Gujareti I St, Tbilisi 0144</p><a class="btn" href="https://www.google.com/maps/dir/?api=1&destination=41.692288,44.833153" target="_blank" rel="noopener">🧭 ניווט למלון</a></div>`;V.info=()=>V.hotelNav()+_info()+V.judoSec()+`<div class="box"><h2>🛡️ ביטוח נסיעות</h2><button class="btn alt" onclick="go('ins')">פרטי הביטוח – הפניקס</button></div>`;
+V.pack=packView;
 const JOINED=famJoinFromHash();
 go(JOINED?"fam":location.hash.slice(1)||"info");
 famPill();if(!fs.me)famPicker();else famStart();

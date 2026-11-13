@@ -25,7 +25,7 @@ header{background:linear-gradient(135deg,#a3001b,#d8283f)}
 .box h2{margin:0 0 8px;font-size:21px}.todo{background:#fff4c2;border-radius:8px;padding:2px 8px}
 .warn{background:#ffe3e3;border-right:5px solid #c00;padding:10px;border-radius:10px;margin:8px 0}
 input,textarea{width:100%;font-size:18px;padding:10px;border-radius:10px;border:1px solid #ccc;margin:4px 0}
-label{display:block;margin:6px 0}.chk{display:flex;gap:10px;align-items:center}.chk input{width:24px;height:24px}
+label{display:block;margin:6px 0}.chk{display:flex;gap:10px;align-items:center}.chk label{flex:1;display:flex;gap:10px;align-items:center;margin:0}.chk input{width:24px;height:24px;flex:none}
 .done{text-decoration:line-through;color:#999}.pp img{max-width:100%;border-radius:10px;margin-top:6px}
 nav button.on{color:#a3001b;font-weight:800}
 .flt{display:flex;gap:8px;margin-top:10px}.flt button{flex:1;padding:10px;border-radius:12px;border:1px solid #ccc;background:#fff;font-size:16px}.flt button.on{background:#a3001b;color:#fff}.srcs{display:flex;gap:8px}.srcs .btn{flex:1}.note{background:#eef6ff;padding:8px;border-radius:10px}nav button{font-size:12px}
@@ -72,3 +72,10 @@ header h1{font-size:19px}
 .fam .btn{margin-top:12px}
 
 nav button,nav button.on{font-size:14px;padding:10px 2px;line-height:1.35}
+
+.box.leave{background:#fff8e8;border:2px solid #e0b44c}
+.chk .del{margin-inline-start:auto;border:0;background:none;color:#b8a89c;font-size:22px;line-height:1;padding:4px 6px;cursor:pointer}
+.padd{display:flex;gap:8px;margin-top:10px;align-items:center}
+.padd input{flex:1;margin:0}
+.padd button{flex:0 0 auto;padding:10px 14px;border:0;border-radius:10px;background:#efe4d6;color:#5a3a26;font-weight:700;font-size:16px}
+.pksum{margin:0 0 6px}
