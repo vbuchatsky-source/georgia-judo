@@ -79,3 +79,11 @@ nav button,nav button.on{font-size:14px;padding:10px 2px;line-height:1.35}
 .padd input{flex:1;margin:0}
 .padd button{flex:0 0 auto;padding:10px 14px;border:0;border-radius:10px;background:#efe4d6;color:#5a3a26;font-weight:700;font-size:16px}
 .pksum{margin:0 0 6px}
+
+.wxc.on{background:#a3001b;border-color:#a3001b;color:#fff;font-weight:700}
+.wxdayt{margin:10px 0 4px;font-weight:700;font-size:17px}
+.wxrow{display:flex;gap:2px;overflow-x:auto;scrollbar-width:thin;align-items:flex-end;padding:8px 0 4px;direction:ltr;min-height:150px}
+.wxh{flex:0 0 44px;min-width:44px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:2px;font-size:12px;color:#5a4a3e;text-align:center}
+.wxh b{font-size:14px;color:#1a4f8a;line-height:1.1}
+.wxh .wh{color:#9a8a7e;font-size:12px;direction:ltr}
+.wxbar{width:12px;height:18px;background:linear-gradient(#4c8dff,#1a73e8);border-radius:6px 6px 2px 2px;display:block}

@@ -59,8 +59,27 @@ $("#vlock").onclick=()=>{VK=null;vault()};
 for(const p of info.people){const d=await vdec(VK,p.f);$("#im-"+p.f).src=URL.createObjectURL(new Blob([d],{type:"image/jpeg"}))}}
 // ---------- weather ----------
 const WI=c=>c==0?"☀️":c<3?"🌤️":c<4?"☁️":c<50?"🌫️":c<70?"🌧️":c<80?"🌨️":"⛈️";
-async function wx(){const el=$("#wx");if(!el)return;try{const r=await fetch("https://api.open-meteo.com/v1/forecast?latitude=41.7151&longitude=44.8271&current=temperature_2m,weather_code&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=Asia%2FTbilisi&forecast_days=16");const d=await r.json();localStorage.wx=JSON.stringify(d);show(d)}catch(e){if(localStorage.wx)show(JSON.parse(localStorage.wx),1);else el.textContent="אין חיבור"}
-function show(d,off){el.innerHTML=`<p>עכשיו: ${WI(d.current.weather_code)} <b>${Math.round(d.current.temperature_2m)}°</b>${off?" (נתון שמור)":""}</p><div style="display:flex;gap:8px;overflow-x:auto">`+d.daily.time.map((t,i)=>`<div style="min-width:70px;text-align:center;padding:6px;border-radius:10px;background:${t>="2026-11-16"&&t<="2026-11-22"?"#ffd9de":"#f3eee7"}">${t.slice(8)}/${t.slice(5,7)}<br>${WI(d.daily.weather_code[i])}<br>${Math.round(d.daily.temperature_2m_max[i])}°/${Math.round(d.daily.temperature_2m_min[i])}°<br><small>💧${d.daily.precipitation_probability_max[i]}%</small></div>`).join("")+"</div>"}}
+const WXURL="https://api.open-meteo.com/v1/forecast?latitude=41.7151&longitude=44.8271&current=temperature_2m,weather_code&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max&hourly=temperature_2m,weather_code,precipitation_probability&timezone=Asia%2FTbilisi&forecast_days=16";
+async function wx(){const el=$("#wx");if(!el)return;try{const r=await fetch(WXURL);const d=await r.json();localStorage.wx=JSON.stringify(d);showWx(d)}catch(e){if(localStorage.wx)showWx(JSON.parse(localStorage.wx),1);else el.textContent="אין חיבור"}}
+function showWx(d,off,sel){
+  const el=$("#wx");if(!el||!d||!d.daily)return;
+  const days=d.daily.time,today=new Date().toLocaleDateString("en-CA",{timeZone:"Asia/Tbilisi"});
+  if(!sel)sel=days.includes(today)?today:(days.find(t=>t>="2026-11-16"&&t<="2026-11-22")||days[0]);
+  const chips=days.map((t,i)=>`<button type="button" class="wxc${t>="2026-11-16"&&t<="2026-11-22"?" trip":""}${t===sel?" on":""}" data-day="${t}">${t.slice(8)}/${t.slice(5,7)}<br>${WI(d.daily.weather_code[i])}<br>${Math.round(d.daily.temperature_2m_max[i])}°/${Math.round(d.daily.temperature_2m_min[i])}°<br><small>💧${d.daily.precipitation_probability_max[i]}%</small></button>`).join("");
+  const h=d.hourly,idx=[];
+  if(h&&h.time)for(let i=0;i<h.time.length;i++)if(h.time[i].startsWith(sel))idx.push(i);
+  let hourly=`<p class="sub">אין תחזית שעתית ליום הזה</p>`;
+  if(idx.length){
+    const temps=idx.map(i=>h.temperature_2m[i]),min=Math.min(...temps),max=Math.max(...temps),span=Math.max(1,max-min);
+    const bars=idx.map(i=>{
+      const t=h.temperature_2m[i],pct=18+Math.round(((t-min)/span)*72),rain=h.precipitation_probability?h.precipitation_probability[i]:null;
+      return `<div class="wxh"><span class="wxbar" style="height:${pct}px"></span><b>${Math.round(t)}°</b><span>${WI(h.weather_code[i])}</span><span class="wh">${h.time[i].slice(11,13)}:00</span>${rain!=null?`<small>💧${rain}%</small>`:""}</div>`;
+    }).join("");
+    hourly=`<p class="wxdayt">לפי שעה · ${sel.slice(8)}/${sel.slice(5,7)}</p><div class="wxrow">${bars}</div>`;
+  }
+  el.innerHTML=`<p>עכשיו: ${WI(d.current.weather_code)} <b>${Math.round(d.current.temperature_2m)}°</b>${off?" (נתון שמור)":""}</p><div class="wxchips">${chips}</div>`+hourly;
+  el.querySelectorAll("[data-day]").forEach(b=>b.onclick=()=>showWx(d,off,b.dataset.day));
+}
 // ---------- router ----------
 const ALIAS={judo:"info",go:"info",pp:"fly"},TABK=["info","trip","fam","fly","routes","ins","pack"];
 function go(t){t=ALIAS[t]||t;if(!TABK.includes(t))t="info";location.hash=t;$("#main").innerHTML=V[t]();$("#tabs").innerHTML=TABS.map(([k,i,l])=>`<button class="${k==t?'on':''}" data-t="${k}">${i}<br>${l}</button>`).join("");$("#tabs").querySelectorAll("button").forEach(b=>b.onclick=()=>go(b.dataset.t));scrollTo(0,0);
