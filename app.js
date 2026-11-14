@@ -6,8 +6,7 @@ trip:()=>`<div class="box"><h2>הטיול</h2><p>✈️ <b>16.11.2026</b> → �
 <div class="box"><h2>✅ רשימת ציוד</h2><button class="btn" onclick="go('pack')">לרשימה</button></div>
 <div class="box hotel"><h2>🏨 מלון · Hotel Residence Plaza</h2><p>כתובת: 19 T Gujareti I St, Tbilisi 0144, Georgia<br>📍 טביליסי · לינה לכל המשפחה</p>
 <a class="btn" href="https://share.google/c8NfljzoHhfhLHZFu" target="_blank" rel="noopener">🗺️ Google Maps</a>
-<a class="btn alt" href="https://residenceplaza.ge/" target="_blank" rel="noopener">🌐 אתר המלון</a></div>
-<div class="box"><h2>🌤️ מזג אוויר – טביליסי</h2><div id="wx">טוען…</div><p class="sub">אם המחנה בעיר אחרת – לעדכן מיקום.</p></div>`,
+<a class="btn alt" href="https://residenceplaza.ge/" target="_blank" rel="noopener">🌐 אתר המלון</a></div>`,
 fly:()=>V.flySec()+V.ppSec(),
 flySec:()=>`<div class="box"><h2>✈️ אל על · קוד הזמנה <span class="code">Y8YTF9</span></h2><p>מחלקה: Economy Lite · כל הארבעה באותה הזמנה</p><a class="btn alt" href="https://booking.elal.com/manage/login?lang=he">ניהול הזמנה / צ'ק-אין</a></div>
 <div class="box"><h2>הלוך – ב' 16.11.2026</h2><p><b>LY5107</b> · מופעל ע"י אל על עבור סאן דור<br>🛫 05:15 נתב"ג, <b>טרמינל 1</b><br>🛬 09:50 טביליסי (TBS) – שעון מקומי<br>⏱️ 2:35 שעות<br>💺 ויטאלי 47K · אדם 47J · יעל (יוליה) 48K · טום 48J</p></div>
@@ -25,7 +24,7 @@ ins:()=>`<div class="box"><h2>🛡️ ביטוח נסיעות – הפניקס S
 routes:()=>routesView(),
 fam:()=>famView(),
 info:()=>`<div class="box"><h2>🚨 חירום</h2><p>מספר חירום אחיד: <b>112</b> (משטרה, אמבולנס, כבאות)</p>${tel("112")}</div>
-<div class="box"><h2>ℹ️ מידע שימושי</h2><p>💱 מטבע: לארי גאורגי (GEL ₾). כרטיסי אשראי מקובלים ברוב המקומות.<br>🔌 חשמל: 220V, שקעים מסוג C/F (תקע ישראלי עגול בדרך כלל מתאים).<br>🕐 שעון: UTC+4 – שעתיים לפני ישראל בנובמבר.<br>🛂 ישראלים: כניסה ללא ויזה (עד שנה); דרכון בתוקף.<br>🗣️ שפה: גאורגית; רוסית ואנגלית מובנות לרוב.<br>🌡️ טביליסי בנובמבר: בערך 3–13°C.</p></div>
+<div class="box"><h2>🌤️ מזג אוויר – טביליסי</h2><div id="wx">טוען…</div></div>
 <div class="box"><h2>🇮🇱 שגרירות ישראל בטביליסי</h2><a class="btn alt" href="https://embassies.gov.il/tbilisi">אתר השגרירות</a><p class="sub">טלפון חירום כללי של משרד החוץ: <a href="tel:+97225303155">+972-2-5303155</a></p></div>`,
 ppSec:()=>`<div class="box"><h2>🔐 צילומי דרכונים (מוצפנים)</h2><div id="vault"></div></div><div class="box"><h2>🛂 הערות נוספות – רק במכשיר הזה</h2><p class="sub">הפרטים והתמונות נשמרים רק בדפדפן של הטלפון הזה (IndexedDB) ולא נשלחים לשום מקום. ניקוי נתוני הדפדפן ימחק אותם. מומלץ להגדיר PIN – אז הכל מוצפן (AES-GCM).</p><div id="ppb">טוען…</div></div>`};
 // ---------- passports (local only) ----------
@@ -65,7 +64,8 @@ function show(d,off){el.innerHTML=`<p>עכשיו: ${WI(d.current.weather_code)} 
 // ---------- router ----------
 const ALIAS={judo:"info",go:"info",pp:"fly"},TABK=["info","trip","fam","fly","routes","ins","pack"];
 function go(t){t=ALIAS[t]||t;if(!TABK.includes(t))t="info";location.hash=t;$("#main").innerHTML=V[t]();$("#tabs").innerHTML=TABS.map(([k,i,l])=>`<button class="${k==t?'on':''}" data-t="${k}">${i}<br>${l}</button>`).join("");$("#tabs").querySelectorAll("button").forEach(b=>b.onclick=()=>go(b.dataset.t));scrollTo(0,0);
-if(t=="trip"){wx();const n=Math.ceil((new Date("2026-11-16")-new Date())/864e5);$("#cd").textContent=n>0?`⏳ עוד ${n} ימים לטיסה`:""}
+if(t=="info")wx()
+if(t=="trip"){const n=Math.ceil((new Date("2026-11-16")-new Date())/864e5);$("#cd").textContent=n>0?`⏳ עוד ${n} ימים לטיסה`:""}
 if(t=="fly"){ppInit();vault()}
 if(t=="routes")routesInit()
 if(t=="fam")famInit()
