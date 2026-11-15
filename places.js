@@ -18,10 +18,18 @@ const PLACES=[
 {n:"כרוניקת גאורגיה + תצפית לים טביליסי",e:"Chronicle of Georgia",k:"a",d:"אנדרטת עמודים ענקית מעל ים טביליסי, שנראה מהאתר. נמצאת מחוץ למרכז העיר.",lat:41.77067,lng:44.81040,q:"Chronicle of Georgia, Tbilisi",s:[S3]},
 {n:"Gardenia Shevardnadze",e:"138 Old Nadzaladevi",k:"a",d:"משתלה וגן עם בית קפה (זה לא הגן הבוטני הלאומי).",lat:41.73112,lng:44.83074,q:"Gardenia Shevardnadze, Tbilisi",s:[S3]},
 {n:"מצחטה – קתדרלת סבטיצחובלי ושוק המזכרות",e:"Mtskheta · Svetitskhoveli",k:"a",d:"עיירה כ-20 ק\"מ מטביליסי. הקתדרלה ושוק המזכרות נמצאים בסביבתה. בסרטון מופיע גם דוכן גלידת יין בלי שם; אחוז האלכוהול לא ידוע, ולכן לא לילדים.",lat:41.84227,lng:44.72099,q:"Svetitskhoveli Cathedral, Mtskheta",s:[S3]},
-{n:"Ethnographer",e:"105 Akaki Beliashvili St (דיגומי)",k:"r",d:"מסעדה גאורגית. בסרטון מוצג מופע ריקודים מסורתי; לוח המופעים העדכני לא נבדק.",lat:41.773268,lng:44.780228,q:"Ethnographer restaurant, 105 Akaki Beliashvili St, Tbilisi",s:[S3]}
+{n:"Ethnographer",e:"105 Akaki Beliashvili St (דיגומי)",k:"r",d:"מסעדה גאורגית. בסרטון מוצג מופע ריקודים מסורתי; לוח המופעים העדכני לא נבדק.",lat:41.773268,lng:44.780228,q:"Ethnographer restaurant, 105 Akaki Beliashvili St, Tbilisi",s:[S3]},
+{n:"מסעדת אורטצ'לה",e:"Restaurant Ortachala · 2a Tsolikauri St (Kheivani)",k:"r",d:"מסעדה גאורגית ברובע אורטצ'לה, עם טרסה ומוזיקה חיה. פתוחה כל יום 10:00–00:00.",lat:41.682217,lng:44.826947,q:"Restaurant Ortachala, 2a Tsolikauri Street, Tbilisi",s:[],want:1,tel:"+995 555 66 44 00"}
 ];
 const hav=(a,b,c,d)=>{const R=6371,r=x=>x*Math.PI/180,x=Math.sin(r(c-a)/2)**2+Math.cos(r(a))*Math.cos(r(c))*Math.sin(r(d-b)/2)**2;return 2*R*Math.asin(Math.sqrt(x))};
 const nav=p=>"https://www.google.com/maps/dir/?api=1&destination="+encodeURIComponent(p.q)+"&travelmode=walking";
+
+function wantedBox(){
+  const L=PLACES.filter(p=>p.want).map(p=>({...p,km:hav(HOTEL.lat,HOTEL.lng,p.lat,p.lng)}));
+  if(!L.length)return"";
+  return `<div class="box"><h2>🍽️ רוצים לבקר</h2>`+L.map(p=>`<h3>${p.n}</h3><p class="sub" dir="ltr" style="text-align:right">${p.e}</p><p>${p.d}</p><p class="sub">כ-${p.km<1?Math.round(p.km*1000)+" מ'":p.km.toFixed(1)+' ק"מ'} מהמלון</p>
+<a class="btn" href="${nav(p)}" target="_blank" rel="noopener">🧭 ניווט ב-Google Maps</a>${p.tel?`<a class="btn alt" href="tel:${p.tel.replace(/[^\d+]/g,"")}">📞 ${p.tel}</a>`:""}`).join("")+`</div>`;
+}
 // --- day routes (OSRM routed-foot / routed-car, Nov 2026) ---
 const CLINIC={
   n:"Akhali Khedva · ახალი ხედვა · מדרסים",
