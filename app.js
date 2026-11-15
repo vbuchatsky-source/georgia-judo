@@ -27,29 +27,8 @@ fam:()=>famView(),
 info:()=>`<div class="box"><h2>🚨 חירום</h2><p>מספר חירום אחיד: <b>112</b> (משטרה, אמבולנס, כבאות)</p>${tel("112")}</div>
 <div class="box"><h2>🌤️ מזג אוויר – טביליסי</h2><div id="wx">טוען…</div></div>
 <div class="box"><h2>🇮🇱 שגרירות ישראל בטביליסי</h2><a class="btn alt" href="https://embassies.gov.il/tbilisi">אתר השגרירות</a><p class="sub">טלפון חירום כללי של משרד החוץ: <a href="tel:+97225303155">+972-2-5303155</a></p></div>`,
-ppSec:()=>`<div class="box"><h2>🔐 דרכונים וכרטיסי עלייה (מוצפנים)</h2><div id="vault"></div></div><div class="box"><h2>🛂 הערות נוספות – רק במכשיר הזה</h2><p class="sub">הפרטים והתמונות נשמרים רק בדפדפן של הטלפון הזה (IndexedDB) ולא נשלחים לשום מקום. ניקוי נתוני הדפדפן ימחק אותם. מומלץ להגדיר PIN – אז הכל מוצפן (AES-GCM).</p><div id="ppb">טוען…</div></div>`};
-// ---------- passports (local only) ----------
-const PEOPLE=["ויטאלי","יעל (יוליה)","אדם","טום"];let KEY=null,PPD=null;
-const db=()=>new Promise((r,j)=>{const q=indexedDB.open("georgia-pp",1);q.onupgradeneeded=()=>q.result.createObjectStore("s");q.onsuccess=()=>r(q.result);q.onerror=j});
-const dget=async k=>{const d=await db();return new Promise(r=>{const q=d.transaction("s").objectStore("s").get(k);q.onsuccess=()=>r(q.result)})};
-const dput=async(k,v)=>{const d=await db();return new Promise(r=>{const t=d.transaction("s","readwrite");t.objectStore("s").put(v,k);t.oncomplete=r})};
+ppSec:()=>`<div class="box"><h2>🔐 דרכונים וכרטיסי עלייה (מוצפנים)</h2><div id="vault"></div></div>`};
 const enc=new TextEncoder(),dec=new TextDecoder();
-async function derive(pin,salt){const b=await crypto.subtle.importKey("raw",enc.encode(pin),"PBKDF2",false,["deriveKey"]);return crypto.subtle.deriveKey({name:"PBKDF2",salt,iterations:600000,hash:"SHA-256"},b,{name:"AES-GCM",length:256},false,["encrypt","decrypt"])}
-async function save(){const m=await dget("meta");if(m&&m.salt){const iv=crypto.getRandomValues(new Uint8Array(12));await dput("data",{iv,ct:await crypto.subtle.encrypt({name:"AES-GCM",iv},KEY,enc.encode(JSON.stringify(PPD)))})}else await dput("data",PPD)}
-async function ppInit(){const b=$("#ppb"),m=await dget("meta");if(m&&m.salt&&!KEY){b.innerHTML=`<input id="pin" type="password" inputmode="numeric" placeholder="PIN"><button class="btn" id="un">🔓 פתיחה</button>`;
-$("#un").onclick=async()=>{try{const k=await derive($("#pin").value,m.salt),d=await dget("data");PPD=JSON.parse(dec.decode(await crypto.subtle.decrypt({name:"AES-GCM",iv:d.iv},k,d.ct)));KEY=k;ppInit()}catch(e){alert("PIN שגוי")}};return}
-if(!PPD)PPD=(await dget("data"))||{};
-b.innerHTML=PEOPLE.map((p,i)=>{const e=PPD[i]||{};return`<div class="box pp" style="background:#faf6f0"><h2>${p}</h2>
-<label>שם כמו בדרכון (אנגלית)<input data-i="${i}" data-f="name" value="${e.name||""}" dir="ltr"></label>
-<label>מס' דרכון<input data-i="${i}" data-f="no" value="${e.no||""}" dir="ltr"></label>
-<label>תוקף<input data-i="${i}" data-f="exp" type="date" value="${e.exp||""}"></label>
-<label>📷 צילום דרכון<input type="file" accept="image/*" data-ph="${i}"></label>${e.ph?`<img src="${e.ph}">`:""}${e.exp&&new Date(e.exp)<new Date("2027-05-22")?'<div class="warn">תוקף פחות מ-6 חודשים מהחזרה – לבדוק!</div>':""}</div>`}).join("")+
-(m&&m.salt?`<button class="btn alt" id="lock">🔒 נעילה</button>`:`<label>הגדרת PIN (לא חובה)<input id="np" type="password" inputmode="numeric"></label><button class="btn alt" id="sp">הצפנה עם PIN</button>`)+`<button class="btn alt" id="wipe" style="background:#fdd">🗑️ מחיקת כל נתוני הדרכונים</button>`;
-b.querySelectorAll("input[data-f]").forEach(x=>x.onchange=()=>{(PPD[x.dataset.i]=PPD[x.dataset.i]||{})[x.dataset.f]=x.value;save();if(x.dataset.f=="exp")ppInit()});
-b.querySelectorAll("input[data-ph]").forEach(x=>x.onchange=()=>{const f=x.files[0];if(!f)return;const im=new Image();im.onload=()=>{const c=document.createElement("canvas"),s=Math.min(1,1600/im.width);c.width=im.width*s;c.height=im.height*s;c.getContext("2d").drawImage(im,0,0,c.width,c.height);(PPD[x.dataset.ph]=PPD[x.dataset.ph]||{}).ph=c.toDataURL("image/jpeg",.85);save().then(ppInit)};im.src=URL.createObjectURL(f)});
-if($("#sp"))$("#sp").onclick=async()=>{const p=$("#np").value;if(p.length<4)return alert("לפחות 4 ספרות");const salt=crypto.getRandomValues(new Uint8Array(16));KEY=await derive(p,salt);await dput("meta",{salt});await save();alert("מוצפן. אין דרך לשחזר PIN שנשכח.");ppInit()};
-if($("#lock"))$("#lock").onclick=()=>{KEY=null;PPD=null;ppInit()};
-$("#wipe").onclick=async()=>{if(!confirm("למחוק הכל?"))return;await dput("data",null);await dput("meta",null);KEY=null;PPD={};ppInit()}}
 // ---------- encrypted vault ----------
 let VK=null;const b64=x=>Uint8Array.from(atob(x),c=>c.charCodeAt(0));
 async function vdec(k,id){const u=new Uint8Array(await (await fetch("sec/"+id+".bin")).arrayBuffer());return crypto.subtle.decrypt({name:"AES-GCM",iv:u.slice(0,12)},k,u.slice(12))}
@@ -57,10 +36,11 @@ async function vault(){const el=$("#vault");if(!el)return;if(!VK){el.innerHTML=`
 $("#vgo").onclick=async()=>{$("#vmsg").textContent="מפענח… (כמה שניות)";try{const m=await (await fetch("sec/meta.json")).json();const b=await crypto.subtle.importKey("raw",enc.encode($("#vpw").value),"PBKDF2",false,["deriveKey"]);const k=await crypto.subtle.deriveKey({name:"PBKDF2",salt:b64(m.salt),iterations:m.iter,hash:"SHA-256"},b,{name:"AES-GCM",length:256},false,["decrypt"]);await vdec(k,"info");VK=k;vault()}catch(e){$("#vmsg").textContent="סיסמה שגויה"}};return}
 const info=JSON.parse(dec.decode(await vdec(VK,"info")));
 const people=info.people.map(p=>`<div class="pp"><h3>${p.n}</h3>${p.exp?`<p>תוקף: <b>${p.exp.split("-").reverse().join("/")}</b></p>${new Date(p.exp)<new Date("2027-05-22")?'<div class="warn">⚠️ הדרכון בתוקף פחות מ-6 חודשים מיום החזרה (22.11.2026) – לבדוק מול דרישות הכניסה לגאורגיה ואל על, ולשקול חידוש.</div>':""}`:""}<img id="im-${p.f}" alt=""></div>`).join("");
-const bps=(info.boarding||[]).map(p=>`<div class="pp"><h3>🎫 ${p.n}${p.seat?" · "+p.seat:""}</h3><img id="im-${p.f}" alt=""></div>`).join("");
-el.innerHTML=people+(bps?`<h2>כרטיסי עלייה · LY5107</h2>`+bps:"")+`<button class="btn alt" id="vlock">🔒 נעילה</button>`;
+const bps=(info.boarding||[]).map(p=>`<div class="pp bp"><h3>🎫 ${p.n}${p.seat?" · "+p.seat:""}</h3><img id="im-${p.f}" alt="כרטיס עלייה"></div>`).join("");
+el.innerHTML=people+(bps?`<h2>כרטיסי עלייה · LY5107</h2><p class="sub">לחצו על כרטיס כדי להגדיל את הברקוד לסריקה</p>`+bps:"")+`<button class="btn alt" id="vlock">🔒 נעילה</button>`;
 $("#vlock").onclick=()=>{VK=null;vault()};
-for(const p of info.people.concat(info.boarding||[])){const d=await vdec(VK,p.f);$("#im-"+p.f).src=URL.createObjectURL(new Blob([d],{type:"image/jpeg"}))}}
+for(const p of info.people.concat(info.boarding||[])){const d=await vdec(VK,p.f);$("#im-"+p.f).src=URL.createObjectURL(new Blob([d],{type:"image/jpeg"}))}
+el.querySelectorAll(".bp img").forEach(img=>img.onclick=()=>{const z=document.createElement("div");z.id="bpz";z.innerHTML=`<img src="${img.src}" alt="">`;z.onclick=()=>z.remove();document.body.appendChild(z)})}
 // ---------- weather ----------
 const WI=c=>c==0?"☀️":c<3?"🌤️":c<4?"☁️":c<50?"🌫️":c<70?"🌧️":c<80?"🌨️":"⛈️";
 const WXURL="https://api.open-meteo.com/v1/forecast?latitude=41.7151&longitude=44.8271&current=temperature_2m,weather_code&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max&hourly=temperature_2m,weather_code,precipitation_probability&timezone=Asia%2FTbilisi&forecast_days=16";
@@ -89,7 +69,7 @@ const ALIAS={judo:"info",go:"info",pp:"fly"},TABK=["info","trip","fam","fly","ro
 function go(t){t=ALIAS[t]||t;if(!TABK.includes(t))t="info";location.hash=t;$("#main").innerHTML=V[t]();$("#tabs").innerHTML=TABS.map(([k,i,l])=>`<button class="${k==t?'on':''}" data-t="${k}">${i}<br>${l}</button>`).join("");$("#tabs").querySelectorAll("button").forEach(b=>b.onclick=()=>go(b.dataset.t));scrollTo(0,0);
 if(t=="info")wx()
 if(t=="trip"){const n=Math.ceil((new Date("2026-11-16")-new Date())/864e5);$("#cd").textContent=n>0?`⏳ עוד ${n} ימים לטיסה`:""}
-if(t=="fly"){ppInit();vault()}
+if(t=="fly")vault()
 if(t=="routes")routesInit()
 if(t=="fam")famInit()
 if(t=="pack")packInit()}
