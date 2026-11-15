@@ -89,3 +89,5 @@ nav button,nav button.on{font-size:14px;padding:10px 2px;line-height:1.35}
 .wxbar{width:12px;height:18px;background:linear-gradient(#4c8dff,#1a73e8);border-radius:6px 6px 2px 2px;display:block}
 
 .box h3{margin:10px 0 4px;font-size:19px}
+
+.ok{background:#e8f6ea;border-right:5px solid #2f9e44;padding:10px;border-radius:10px;margin:8px 0}

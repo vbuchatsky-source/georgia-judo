@@ -10,7 +10,7 @@ trip:()=>`<div class="box"><h2>הטיול</h2><p>✈️ <b>16.11.2026</b> → �
 fly:()=>V.flySec()+V.ppSec(),
 flySec:()=>`<div class="box"><h2>✈️ אל על · קוד הזמנה <span class="code">Y8YTF9</span></h2><p>מחלקה: Economy Lite · כל הארבעה באותה הזמנה</p><a class="btn alt" href="https://booking.elal.com/manage/login?lang=he">ניהול הזמנה / צ'ק-אין</a></div>
 <div class="box"><h2>הלוך – ב' 16.11.2026</h2><p><b>LY5107</b> · מופעל ע"י אל על עבור סאן דור<br>🛫 05:15 נתב"ג, <b>טרמינל 1</b><br>🛬 09:50 טביליסי (TBS) – שעון מקומי<br>⏱️ 2:35 שעות<br>💺 ויטאלי 47K · אדם 47J · יעל (יוליה) 48K · טום 48J</p>
-<div class="warn">⚠️ צ'ק-אין מקוון לא בוצע – לעשות צ'ק-אין בדלפק אל על, טרמינל 1. מונית ב-1:50, הגעה משוערת ~2:20. להציג דרכונים (ליוליה – הדרכון החדש) וקוד הזמנה Y8YTF9.</div></div>
+<div class="ok">✅ צ'ק-אין בוצע<br>🚪 פתיחת שער 04:25 · סגירת שער 05:00 · מספר השער טרם פורסם<br>🚕 מונית ב-1:50, הגעה משוערת ~2:20<br>כרטיסי העלייה בכספת למטה, עם אותו קוד כמו הדרכונים.</div></div>
 <div class="box"><h2>חזור – א' 22.11.2026</h2><p><b>LY5118</b> · מופעל ע"י KlasJet עבור סאן דור<br>🛫 12:05 טביליסי (TBS)<br>🛬 12:45 נתב"ג, <b>טרמינל 3</b> – שעון ישראל<br>⏱️ 2:40 שעות<br>💺 ויטאלי 10F · אדם 10E · יעל (יוליה) 09F · טום 09E</p></div>
 <div class="box"><h2>🧳 כבודה (Lite)</h2><p>לכל נוסע: תיק אישי מתחת למושב + טרולי עד 8 ק"ג (נשלח לבטן המטוס ללא עלות). <b>מזוודה לבטן לא כלולה (0PC)</b> – אם צריך לציוד ג'ודו, להוסיף מראש באתר (זול יותר מבשדה).</p><p class="sub">מקור: אישורי הזמנה של אל על, 29.9.2026. ההלוך יוצא מטרמינל 1 והחזרה נוחתת בטרמינל 3.</p></div>`,
 judoSec:()=>`<div class="box"><h2>🥋 מחנה האימונים</h2><p>שם המחנה / מועדון: ${T}<br>עיר ומקום לינה: טביליסי · <b>Hotel Residence Plaza</b><br>כתובת: 19 T Gujareti I St, Tbilisi 0144<br>איש קשר + טלפון: ${T}<br>לוח אימונים: ${T}<br>הסעה משדה התעופה: ${T}</p>
@@ -27,7 +27,7 @@ fam:()=>famView(),
 info:()=>`<div class="box"><h2>🚨 חירום</h2><p>מספר חירום אחיד: <b>112</b> (משטרה, אמבולנס, כבאות)</p>${tel("112")}</div>
 <div class="box"><h2>🌤️ מזג אוויר – טביליסי</h2><div id="wx">טוען…</div></div>
 <div class="box"><h2>🇮🇱 שגרירות ישראל בטביליסי</h2><a class="btn alt" href="https://embassies.gov.il/tbilisi">אתר השגרירות</a><p class="sub">טלפון חירום כללי של משרד החוץ: <a href="tel:+97225303155">+972-2-5303155</a></p></div>`,
-ppSec:()=>`<div class="box"><h2>🔐 צילומי דרכונים (מוצפנים)</h2><div id="vault"></div></div><div class="box"><h2>🛂 הערות נוספות – רק במכשיר הזה</h2><p class="sub">הפרטים והתמונות נשמרים רק בדפדפן של הטלפון הזה (IndexedDB) ולא נשלחים לשום מקום. ניקוי נתוני הדפדפן ימחק אותם. מומלץ להגדיר PIN – אז הכל מוצפן (AES-GCM).</p><div id="ppb">טוען…</div></div>`};
+ppSec:()=>`<div class="box"><h2>🔐 דרכונים וכרטיסי עלייה (מוצפנים)</h2><div id="vault"></div></div><div class="box"><h2>🛂 הערות נוספות – רק במכשיר הזה</h2><p class="sub">הפרטים והתמונות נשמרים רק בדפדפן של הטלפון הזה (IndexedDB) ולא נשלחים לשום מקום. ניקוי נתוני הדפדפן ימחק אותם. מומלץ להגדיר PIN – אז הכל מוצפן (AES-GCM).</p><div id="ppb">טוען…</div></div>`};
 // ---------- passports (local only) ----------
 const PEOPLE=["ויטאלי","יעל (יוליה)","אדם","טום"];let KEY=null,PPD=null;
 const db=()=>new Promise((r,j)=>{const q=indexedDB.open("georgia-pp",1);q.onupgradeneeded=()=>q.result.createObjectStore("s");q.onsuccess=()=>r(q.result);q.onerror=j});
@@ -55,9 +55,12 @@ let VK=null;const b64=x=>Uint8Array.from(atob(x),c=>c.charCodeAt(0));
 async function vdec(k,id){const u=new Uint8Array(await (await fetch("sec/"+id+".bin")).arrayBuffer());return crypto.subtle.decrypt({name:"AES-GCM",iv:u.slice(0,12)},k,u.slice(12))}
 async function vault(){const el=$("#vault");if(!el)return;if(!VK){el.innerHTML=`<input id="vpw" type="password" inputmode="numeric" placeholder="סיסמה"><button class="btn" id="vgo">🔓 פתיחה</button><p class="sub" id="vmsg"></p>`;
 $("#vgo").onclick=async()=>{$("#vmsg").textContent="מפענח… (כמה שניות)";try{const m=await (await fetch("sec/meta.json")).json();const b=await crypto.subtle.importKey("raw",enc.encode($("#vpw").value),"PBKDF2",false,["deriveKey"]);const k=await crypto.subtle.deriveKey({name:"PBKDF2",salt:b64(m.salt),iterations:m.iter,hash:"SHA-256"},b,{name:"AES-GCM",length:256},false,["decrypt"]);await vdec(k,"info");VK=k;vault()}catch(e){$("#vmsg").textContent="סיסמה שגויה"}};return}
-const info=JSON.parse(dec.decode(await vdec(VK,"info")));el.innerHTML=info.people.map(p=>`<div class="pp"><h3>${p.n}</h3>${p.exp?`<p>תוקף: <b>${p.exp.split("-").reverse().join("/")}</b></p>${new Date(p.exp)<new Date("2027-05-22")?'<div class="warn">⚠️ הדרכון בתוקף פחות מ-6 חודשים מיום החזרה (22.11.2026) – לבדוק מול דרישות הכניסה לגאורגיה ואל על, ולשקול חידוש.</div>':""}`:""}<img id="im-${p.f}" alt=""></div>`).join("")+`<button class="btn alt" id="vlock">🔒 נעילה</button>`;
+const info=JSON.parse(dec.decode(await vdec(VK,"info")));
+const people=info.people.map(p=>`<div class="pp"><h3>${p.n}</h3>${p.exp?`<p>תוקף: <b>${p.exp.split("-").reverse().join("/")}</b></p>${new Date(p.exp)<new Date("2027-05-22")?'<div class="warn">⚠️ הדרכון בתוקף פחות מ-6 חודשים מיום החזרה (22.11.2026) – לבדוק מול דרישות הכניסה לגאורגיה ואל על, ולשקול חידוש.</div>':""}`:""}<img id="im-${p.f}" alt=""></div>`).join("");
+const bps=(info.boarding||[]).map(p=>`<div class="pp"><h3>🎫 ${p.n}${p.seat?" · "+p.seat:""}</h3><img id="im-${p.f}" alt=""></div>`).join("");
+el.innerHTML=people+(bps?`<h2>כרטיסי עלייה · LY5107</h2>`+bps:"")+`<button class="btn alt" id="vlock">🔒 נעילה</button>`;
 $("#vlock").onclick=()=>{VK=null;vault()};
-for(const p of info.people){const d=await vdec(VK,p.f);$("#im-"+p.f).src=URL.createObjectURL(new Blob([d],{type:"image/jpeg"}))}}
+for(const p of info.people.concat(info.boarding||[])){const d=await vdec(VK,p.f);$("#im-"+p.f).src=URL.createObjectURL(new Blob([d],{type:"image/jpeg"}))}}
 // ---------- weather ----------
 const WI=c=>c==0?"☀️":c<3?"🌤️":c<4?"☁️":c<50?"🌫️":c<70?"🌧️":c<80?"🌨️":"⛈️";
 const WXURL="https://api.open-meteo.com/v1/forecast?latitude=41.7151&longitude=44.8271&current=temperature_2m,weather_code&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max&hourly=temperature_2m,weather_code,precipitation_probability&timezone=Asia%2FTbilisi&forecast_days=16";
