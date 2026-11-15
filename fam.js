@@ -65,13 +65,64 @@ function famInit(){if(!fs.room){$("#fcreate").onclick=famCreate;return}
   $("#finv").onclick=async()=>{const u=famLink(),t="איפה כולם – פתחו את הקישור כדי לראות אחד את השני בטביליסי 🇬🇪\n"+u;
     if(navigator.share)try{await navigator.share({title:"איפה כולם",text:t});return}catch(e){if(e.name=="AbortError")return}
     location.href="https://wa.me/?text="+encodeURIComponent(t)};
-  fs.map=null;fs.mk={};famLeaflet().then(()=>{if(!$("#fmap"))return;fs.map=L.map("fmap",{zoomControl:false,attributionControl:true}).setView([HOTEL.lat,HOTEL.lng],14);
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:"© OpenStreetMap"}).addTo(fs.map);
+  fs.map=null;fs.mk={};fs.pin={};fs.ln={};fs.spreadHooked=0;
+  famLeaflet().then(()=>{if(!$("#fmap"))return;fs.map=L.map("fmap",{zoomControl:false,attributionControl:true}).setView([HOTEL.lat,HOTEL.lng],14);
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:21,maxNativeZoom:19,attribution:"© OpenStreetMap"}).addTo(fs.map);
     L.marker([HOTEL.lat,HOTEL.lng],{icon:L.divIcon({className:"",html:`<div class="fmk" style="--c:#7a2e1d">🏨</div>`,iconSize:[36,36],iconAnchor:[18,18]})}).addTo(fs.map).bindTooltip("המלון");
-    fs.fit=true;famRender()}).catch(()=>{$("#fmap").innerHTML=`<p class="sub" style="padding:20px;text-align:center">המפה לא נטענה (אין אינטרנט?)</p>`});
+    fs.map.invalidateSize();fs.fit=true;famHookSpread();famRender()}).catch(()=>{$("#fmap").innerHTML=`<p class="sub" style="padding:20px;text-align:center">המפה לא נטענה (אין אינטרנט?)</p>`});
   famRender()}
 function famLeaflet(){if(window.L)return Promise.resolve();return new Promise((ok,no)=>{const c=document.createElement("link");c.rel="stylesheet";c.href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";document.head.appendChild(c);
   const s=document.createElement("script");s.src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";s.onload=ok;s.onerror=no;document.head.appendChild(s)})}
+
+const FAM_MINPX=44; // 38px avatar + 6px gap, center-to-center
+function famSpreadPts(items,minD){
+  const n=items.length,p=items.map((_,i)=>i);
+  const f=i=>p[i]==i?i:p[i]=f(p[i]);
+  const u=(a,b)=>{a=f(a);b=f(b);if(a!=b)p[a]=b};
+  for(let i=0;i<n;i++)for(let j=i+1;j<n;j++){
+    const dx=items[i].x-items[j].x,dy=items[i].y-items[j].y;
+    if(dx*dx+dy*dy<minD*minD)u(i,j);
+  }
+  const g={};items.forEach((it,i)=>(g[f(i)]||=[]).push(it));
+  const out={};
+  for(const c of Object.values(g)){
+    if(c.length==1){out[c[0].n]={x:c[0].x,y:c[0].y};continue}
+    const cx=c.reduce((s,q)=>s+q.x,0)/c.length,cy=c.reduce((s,q)=>s+q.y,0)/c.length;
+    const arr=c.map((q,i)=>{const d=Math.hypot(q.x-cx,q.y-cy);return{q,i,ang:d<1e-3?NaN:Math.atan2(q.y-cy,q.x-cx)}});
+    const base=arr.find(a=>!isNaN(a.ang));
+    if(base){arr.forEach(a=>{if(isNaN(a.ang))a.ang=base.ang});arr.sort((a,b)=>a.ang-b.ang||a.i-b.i)}
+    const r=minD/(2*Math.sin(Math.PI/c.length)),a0=!isNaN(arr[0].ang)?arr[0].ang:0;
+    arr.forEach((a,i)=>{const th=a0+i*2*Math.PI/c.length;out[a.q.n]={x:cx+Math.cos(th)*r,y:cy+Math.sin(th)*r}});
+  }
+  return out;
+}
+function famHookSpread(){
+  if(!fs.map||fs.spreadHooked)return;fs.spreadHooked=1;
+  const tick=()=>{if(fs._spRaf)return;fs._spRaf=requestAnimationFrame(()=>{fs._spRaf=0;famSpreadMarkers()})};
+  fs.map.on("zoomend moveend zoom move",tick);
+}
+function famSpreadMarkers(){
+  if(!fs.map)return;
+  const items=[];
+  for(const[n,e,c]of FAM.people){const o=fs.pos[n];if(!o)continue;const pt=fs.map.latLngToLayerPoint(L.latLng(o.la,o.lo));items.push({n,c,la:o.la,lo:o.lo,x:pt.x,y:pt.y})}
+  const pos=famSpreadPts(items,FAM_MINPX);
+  if(!fs.pin)fs.pin={};if(!fs.ln)fs.ln={};
+  for(const it of items){
+    const d=pos[it.n],disp=fs.map.layerPointToLatLng(L.point(d.x,d.y));
+    if(fs.mk[it.n])fs.mk[it.n].setLatLng(disp);
+    const moved=(d.x-it.x)**2+(d.y-it.y)**2>9;
+    if(moved){
+      const tru=L.latLng(it.la,it.lo);
+      if(!fs.pin[it.n])fs.pin[it.n]=L.circleMarker(tru,{radius:3,weight:1,color:"#fff",fillColor:it.c,fillOpacity:1,interactive:false}).addTo(fs.map);
+      else fs.pin[it.n].setLatLng(tru).setStyle({fillColor:it.c});
+      if(!fs.ln[it.n])fs.ln[it.n]=L.polyline([tru,disp],{weight:2,color:it.c,opacity:.45,interactive:false}).addTo(fs.map);
+      else fs.ln[it.n].setLatLngs([tru,disp]);
+    }else{
+      if(fs.pin[it.n]){fs.pin[it.n].remove();delete fs.pin[it.n]}
+      if(fs.ln[it.n]){fs.ln[it.n].remove();delete fs.ln[it.n]}
+    }
+  }
+}
 function famRender(){const el=$("#flist");if(!el)return;$("#ferr").innerHTML=fs.err?`<p class="warn">${fs.err}</p>`:"";
   const me=fs.mine;const rows=FAM.people.map(([n,e,c])=>{const o=fs.pos[n];
     if(!o)return `<div class="frow none"><span class="fav" style="--c:#bbb">${e}</span><div class="fi"><b>${n}</b><span class="sub">עוד לא שיתף מיקום</span></div></div>`;
@@ -81,6 +132,7 @@ function famRender(){const el=$("#flist");if(!el)return;$("#ferr").innerHTML=fs.
   el.innerHTML=`<div class="flist">${rows}</div>`;
   if(fs.map){const pts=[[HOTEL.lat,HOTEL.lng]];for(const[n,e,c]of FAM.people){const o=fs.pos[n];if(!o)continue;const stale=Date.now()-o.t>FAM.staleMin*60e3;
       const ic=L.divIcon({className:"",html:`<div class="fmk${stale?" stale":""}" style="--c:${c}">${e}</div>`,iconSize:[38,38],iconAnchor:[19,19]});
-      if(fs.mk[n])fs.mk[n].setLatLng([o.la,o.lo]).setIcon(ic);else fs.mk[n]=L.marker([o.la,o.lo],{icon:ic}).addTo(fs.map).bindTooltip(n);pts.push([o.la,o.lo])}
-    if(fs.fit&&pts.length>1){fs.map.fitBounds(pts,{padding:[40,40],maxZoom:16});fs.fit=false}}}
+      if(fs.mk[n])fs.mk[n].setIcon(ic);else fs.mk[n]=L.marker([o.la,o.lo],{icon:ic,zIndexOffset:200}).addTo(fs.map).bindTooltip(n);pts.push([o.la,o.lo])}
+    if(fs.fit&&pts.length>1){fs.map.fitBounds(pts,{padding:[40,40],maxZoom:16});fs.fit=false}
+    famSpreadMarkers()}}
 setInterval(()=>{if(location.hash=="#fam"&&!document.hidden)famRender()},30e3);
