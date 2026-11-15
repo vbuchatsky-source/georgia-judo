@@ -1,8 +1,8 @@
 // ---------- איפה כולם: family location sharing ----------
-// Backend: ntfy.sh (free pub/sub, no account). Room topic is random; every position is AES-GCM encrypted
-// in the browser with a family key that only travels inside the join link's #fragment (never sent to any server).
+// Backend: ntfy.sh. All family phones share one baked-in room + AES-GCM key (see FAM.room / FAM.key).
+// Positions are encrypted in the browser before upload. Old per-device rooms are migrated by famEnsure().
 const FAM={people:[["ויטאלי","👨","#1a73e8"],["יוליה","👩","#d6336c"],["אדם","👦","#2f9e44"],["טום","🧒","#f08c00"]],
-  api:"https://ntfy.sh/",staleMin:15,sendEvery:60e3};
+  api:"https://ntfy.sh/",room:"gjU8LEabl79NoGEQZdyw_a09vj",key:"nRHdjXXiqD_weab92eg6ZuoW0RoKp7xM48-DhsoFjbg",staleMin:15,sendEvery:60e3};
 const fs={get me(){return localStorage.famMe||""},get room(){return localStorage.famRoom||""},get key(){return localStorage.famKey||""},get paused(){return localStorage.famPause=="1"},
   pos:{},mine:null,lastSent:0,lastSentPos:null,watch:null,es:null,poll:null,ck:null,map:null,mk:{},status:"off"};
 const b64u=b=>btoa(String.fromCharCode(...new Uint8Array(b))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
@@ -13,9 +13,9 @@ async function famEnc(o){const iv=crypto.getRandomValues(new Uint8Array(12)),ct=
 async function famDec(s){const[v,iv,ct]=String(s).split(".");if(v!="v1")return null;try{return JSON.parse(new TextDecoder().decode(await crypto.subtle.decrypt({name:"AES-GCM",iv:ub64(iv)},await famKey(),ub64(ct))))}catch(e){return null}}
 const famLink=()=>location.origin+location.pathname+"#fam="+fs.room+"~"+fs.key;
 const pOf=n=>FAM.people.find(p=>p[0]==n)||[n,"🙂","#666"];
-function famJoinFromHash(){const m=location.hash.match(/^#fam=([\w-]{16,})~([\w-]{40,})$/);if(!m)return false;
-  if(fs.room!=m[1]){localStorage.famRoom=m[1];localStorage.famKey=m[2];fs.ck=null;fs.pos={}}history.replaceState(null,"",location.pathname+"#fam");return true}
-function famCreate(){localStorage.famRoom="gj"+rnd(18);localStorage.famKey=rnd(32);fs.ck=null;fs.pos={};famStart();go("fam")}
+function famEnsure(){if(fs.room==FAM.room&&fs.key==FAM.key)return;localStorage.famRoom=FAM.room;localStorage.famKey=FAM.key;fs.ck=null;fs.pos={}}
+function famJoinFromHash(){famEnsure();if(!/^#fam([=]|$)/.test(location.hash))return false;history.replaceState(null,"",location.pathname+"#fam");return true}
+function famCreate(){famEnsure();famStart();go("fam")}
 // --- who are you ---
 function famPicker(){if($("#who"))return;const d=document.createElement("div");d.id="who";d.innerHTML=`<div class="whoin"><h2>מי אתה? 👋</h2><p class="sub">כדי שהמשפחה תראה מי איפה</p>
 <div class="whog">${FAM.people.map(([n,e,c])=>`<button data-n="${n}" style="--c:${c}"><span>${e}</span>${n}</button>`).join("")}</div></div>`;
@@ -24,29 +24,33 @@ function famPicker(){if($("#who"))return;const d=document.createElement("div");d
 function famPill(){let p=$("#fampill");if(!p){p=document.createElement("button");p.id="fampill";document.querySelector("header").appendChild(p);p.onclick=()=>go("fam")}
   const on=fs.status=="on";p.className=on?"on":"";p.textContent=on?"📍 משתף מיקום":"מיקום כבוי"}
 // --- sharing ---
-function famStart(){if(!fs.me||!fs.room||document.hidden){famStop();return}
+function famStart(){famEnsure();if(!fs.me||!fs.room||document.hidden){famStop();return}
   famListen();if(fs.paused||!navigator.geolocation){fs.status="off";famPill();return}
   if(fs.watch==null)fs.watch=navigator.geolocation.watchPosition(famOnPos,e=>{fs.status="off";fs.err=e.code==1?"הגישה למיקום נחסמה – אפשר לאשר בהגדרות הדפדפן":"המיקום לא זמין כרגע";famPill();famRender()},{enableHighAccuracy:true,maximumAge:30e3,timeout:30e3})}
 function famStop(){if(fs.watch!=null){navigator.geolocation.clearWatch(fs.watch);fs.watch=null}if(fs.es){fs.es.close();fs.es=null}clearInterval(fs.poll);fs.poll=null;fs.status="off";famPill()}
 async function famOnPos(p){fs.err="";fs.status="on";famPill();const c=p.coords,o={n:fs.me,la:+c.latitude.toFixed(5),lo:+c.longitude.toFixed(5),a:Math.round(c.accuracy),t:Date.now()};
   fs.mine=o;fs.pos[fs.me]=o;famRender();
   const moved=fs.lastSentPos?hav(fs.lastSentPos.la,fs.lastSentPos.lo,o.la,o.lo)*1000:1e9,age=Date.now()-fs.lastSent;
-  if(age<FAM.sendEvery||(moved<15&&age<5*60e3))return;
-  fs.lastSent=Date.now();fs.lastSentPos=o;
-  try{await fetch(FAM.api+fs.room,{method:"POST",body:await famEnc(o),cache:"no-store"})}catch(e){fs.lastSent=0}}
+  if(Date.now()<fs.nextSend||age<FAM.sendEvery||(moved<15&&age<5*60e3))return;
+  fs.lastSent=Date.now();fs.lastSentPos=o;fs.nextSend=0;
+  try{const r=await fetch(FAM.api+encodeURIComponent(fs.room),{method:"POST",body:await famEnc(o),cache:"no-store"});
+    if(!r.ok){fs.err=r.status==429?"השרת עמוס כרגע, מנסה שוב בעוד כמה דקות":"לא הצלחתי לשלוח את המיקום (קוד "+r.status+")";fs.nextSend=Date.now()+(r.status==429?5*60e3:30e3);famRender()}}
+  catch(e){fs.nextSend=Date.now()+15e3}}
 async function famIngest(msg){const o=await famDec(msg);if(!o||!o.n||!isFinite(o.la))return;const cur=fs.pos[o.n];if(!cur||o.t>cur.t){fs.pos[o.n]=o;famRender()}}
-async function famPollOnce(since){try{const r=await fetch(FAM.api+fs.room+"/json?poll=1&since="+(since||"12h"),{cache:"no-store"});const t=await r.text();
+async function famPollOnce(){try{const r=await fetch(FAM.api+encodeURIComponent(fs.room)+"/json?poll=1&since=all&limit=50",{cache:"no-store"});if(!r.ok)return;const t=await r.text();
   for(const l of t.split("\n")){if(!l.trim())continue;try{const m=JSON.parse(l);if(m.event=="message")await famIngest(m.message)}catch(e){}}}catch(e){}}
-function famListen(){if(fs.es||!fs.room)return;famPollOnce("12h");
-  if("EventSource"in window){fs.es=new EventSource(FAM.api+fs.room+"/sse");fs.es.onmessage=e=>{try{const m=JSON.parse(e.data);if(m.event=="message")famIngest(m.message)}catch(_){}}}
-  fs.poll=setInterval(()=>famPollOnce("3m"),60e3)}
+function famListen(){if(!fs.room)return;
+  if(!fs.es&&"EventSource"in window){fs.es=new EventSource(FAM.api+encodeURIComponent(fs.room)+"/sse?since=all");
+    fs.es.onmessage=e=>{try{const m=JSON.parse(e.data);if(m.event=="message")famIngest(m.message)}catch(_){}};
+    fs.es.onerror=()=>{if(fs.es&&fs.es.readyState==EventSource.CLOSED){fs.es=null}}}
+  if(!fs.poll){famPollOnce();fs.poll=setInterval(famPollOnce,120e3)}}
 document.addEventListener("visibilitychange",()=>{if(document.hidden)famStop();else{famStart();if(location.hash=="#fam")famRender()}});
 // --- view ---
 const ago=t=>{const m=Math.round((Date.now()-t)/60e3);return m<1?"עכשיו":m<60?`לפני ${m} דק׳`:m<1440?`לפני ${Math.floor(m/60)} שע׳`:"לפני יותר מיום"};
 const kmTxt=k=>k<1?Math.round(k*1000)+" מ׳":k.toFixed(1)+" ק״מ";
 function famView(){
-  if(!fs.room)return `<div class="box fam"><h2>👨‍👩‍👦‍👦 איפה כולם</h2><p>כדי לראות אחד את השני, כולם צריכים להיות באותה קבוצה משפחתית.</p>
-<p class="sub">אחד יוצר קבוצה ושולח קישור בוואטסאפ. כל השאר פשוט פותחים את הקישור.</p><button class="btn" id="fcreate">➕ יצירת קבוצה משפחתית</button></div>`;
+  famEnsure();
+  if(!fs.room)return `<div class="box fam"><h2>👨‍👩‍👦‍👦 איפה כולם</h2><p>טוען את קבוצת המשפחה…</p><button class="btn" id="fcreate">המשך</button></div>`;
   return `<div class="famtop"><div><b>👨‍👩‍👦‍👦 איפה כולם</b><span class="sub"> · אני: ${pOf(fs.me)[1]} ${fs.me||"?"}</span></div>
 <label class="tgl"><input type="checkbox" id="fshare" ${fs.paused?"":"checked"}><span></span> שיתוף</label></div>
 <div id="fmap"></div><div id="ferr"></div><div id="flist"></div>
