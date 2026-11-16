@@ -22,7 +22,9 @@ const PLACES=[
 {n:"מסעדת אורטצ'לה",e:"Restaurant Ortachala · 2a Tsolikauri St (Kheivani)",k:"r",d:"מסעדה גאורגית ברובע אורטצ'לה, עם טרסה ומוזיקה חיה. פתוחה כל יום 10:00–00:00.",lat:41.682217,lng:44.826947,q:"Restaurant Ortachala, 2a Tsolikauri Street, Tbilisi",s:[],want:1,tel:"+995 555 66 44 00"},
 {n:"מסעדת לומוס תאי",e:"Lumos Thai Restaurant · 3 Gia Abesadze St",k:"r",d:"מסעדה תאית בעיר העתיקה, עם עיצוב בהשראת הארי פוטר. פתוחה כל יום 11:30–23:30.",lat:41.69283,lng:44.80316,q:"Lumos Thai Restaurant, 3 Gia Abesadze Street, Tbilisi",s:[],tel:"+995 598 59 93 69"},
 {n:"חנות אוליוונדרס",e:"Ollivander's Shop · 5 Kekelidze St, Vake",k:"a",d:"חנות נושא של הארי פוטר: שרביטים, גלימות, צעיפים ומזכרות. פתוחה כל יום בערך 10:00–21:00.",lat:41.70801,lng:44.77828,q:"Ollivander's Shop, 5 Kekelidze Street, Tbilisi",s:[],tel:"+995 322 11 04 50"},
-{n:"מסעדת Georgian House (דידובי)",e:"Georgian House restaurant · 2 Giorgi Tsabadze St",k:"r",d:"המסעדה הגאורגית הידועה, עם מופעים חיים. לא לבלבל עם המלון באותו שם באבלבארי.",lat:41.72050,lng:44.78587,q:"Georgian House restaurant, 2 Giorgi Tsabadze Street, Tbilisi",s:[S1],want:1}
+{n:"מסעדת Georgian House (דידובי)",e:"Georgian House restaurant · 2 Giorgi Tsabadze St",k:"r",d:"המסעדה הגאורגית הידועה, עם מופעים חיים. לא לבלבל עם המלון באותו שם באבלבארי.",lat:41.72050,lng:44.78587,q:"Georgian House restaurant, 2 Giorgi Tsabadze Street, Tbilisi",s:[S1],want:1},
+{n:"מסעדת פוניקולר",e:"Funicular Restaurant · Mtatsminda plateau",k:"r",d:"מתחם היסטורי בראש הר מתצמינדה, עם תצפית על העיר. ידוע בפונצ'יקי (סופגניות קרם) בבית הקפה. עולים ברכבל הרים מהתחנה התחתונה ברחוב דניאל צ'ונקדזה, או במונית ישר למעלה (~11 ק\"מ · ~23 דק׳ מהמלון). בית הקפה פתוח כל יום 12:00–23:00.",lat:41.69466,lng:44.78667,q:"Funicular Restaurant, Mtatsminda plateau, Tbilisi",s:[],want:1,tel:"+995 577 74 44 00"},
+{n:"תחנת הפוניקולר התחתונה",e:"Tbilisi Funicular lower station · 22 Daniel Chonkadze St",k:"a",d:"התחנה התחתונה של רכבל ההרים למתצמינדה ולמסעדת פוניקולר. לא לבלבל עם המסעדה בראש ההר. כ-5 ק\"מ · ~9 דק׳ במונית מהמלון (העלייה ברגל תלולה, כשעה).",lat:41.69534,lng:44.79185,q:"Tbilisi Funicular lower station, 22 Daniel Chonkadze Street, Tbilisi",s:[],w:1}
 ];
 const hav=(a,b,c,d)=>{const R=6371,r=x=>x*Math.PI/180,x=Math.sin(r(c-a)/2)**2+Math.cos(r(a))*Math.cos(r(c))*Math.sin(r(d-b)/2)**2;return 2*R*Math.asin(Math.sqrt(x))};
 function navMode(p){const i=PLACES.indexOf(p);let drive=0,walk=0;
@@ -107,7 +109,7 @@ ${r.stops.map((s,idx)=>stopCard(r,s,idx)).join("")}
 <details class="more"><summary>ℹ️ על המסלולים</summary><p>כל מסלול מתחיל ונגמר ב־Hotel Residence Plaza. המרחקים והזמנים לפי ניתוב הליכה/נסיעה אמיתי (OSRM), בלי זמן הביקור עצמו.</p><p>📅 16–22.11 · שלבו מסלול בין האימונים. ב־22.11 הטיסה ב־12:05 – רק משהו קצר בבוקר.</p></details>
 ${clinicBox()}`}
 const esc=t=>String(t).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-const STOPEMO=["🌉","🌳","🚡","🗽","🍷","♨️","💦","🛍️","🏛️","🍲","🍖","🍰","🖼️","🗿","🌷","⛪","💃","🍽️","🍜","🪄","🍲"];
+const STOPEMO=["🌉","🌳","🚡","🗽","🍷","♨️","💦","🛍️","🏛️","🍲","🍖","🍰","🖼️","🗿","🌷","⛪","💃","🍽️","🍜","🪄","🍲","🍩","🚡"];
 function gallery(i){const L=photosOf(i);
   if(!L.length)return `<div class="gal none">${STOPEMO[i]||"📍"} <span>אין תמונות</span></div>`;
   return `<div class="gal" data-p="${i}"><div class="gtrack">${L.map((p,k)=>`<img src="${p[0]}" ${k?'loading="lazy"':''} decoding="async" alt="${esc(PLACES[i].n)} ${k+1}" data-k="${k}">`).join("")}</div>${L.length>1?`<div class="dots">${L.map((_,k)=>`<i class="${k?"":"on"}"></i>`).join("")}</div>`:""}</div>`}

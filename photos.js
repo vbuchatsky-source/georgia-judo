@@ -1,5 +1,5 @@
 // Real photos per place (index-aligned with PLACES). Commons photos keep author+license; others are the venue's own/official photos.
-const PH_IDX=["peace", "rike", "ropeway", "kartlis", "see360", "orbeliani", "waterfall", "meidan", "freedom", "ghouse", "ribs", "zodiaqo", "drybridge", "chronicle", "gardenia", "svetitskhoveli", "ethno", "ortachala", "lumos", "ollivander"];
+const PH_IDX=["peace", "rike", "ropeway", "kartlis", "see360", "orbeliani", "waterfall", "meidan", "freedom", "ghouse", "ribs", "zodiaqo", "drybridge", "chronicle", "gardenia", "svetitskhoveli", "ethno", "ortachala", "lumos", "ollivander", "ghouse_didube", "funicular", "funilower"];
 const PHOTOS={"peace":[["img/peace/1.jpg","Andrew Milligan sumo · CC BY 2.0 · Wikimedia Commons","https://commons.wikimedia.org/wiki/File:Mtkvari_River_Cruise,_Tbilisi,_Georgia_(48813987373).jpg"],
 ["img/peace/2.jpg","falco · CC0 · Wikimedia Commons","https://commons.wikimedia.org/wiki/File:Tbilisi_Peace_Bridge_and_Kura_River_by_Falco.jpg"],
 ["img/peace/3.jpg","ako-aleko · CC BY-SA 3.0 · Wikimedia Commons","https://commons.wikimedia.org/wiki/File:Mtkvari_-_panoramio.jpg"],
@@ -63,5 +63,9 @@ const PHOTOS={"peace":[["img/peace/1.jpg","Andrew Milligan sumo · CC BY 2.0 · 
 ["img/lumos/4.jpg","גלריית המסעדה ב-Yandex Maps","https://yandex.com.ge/maps/org/lumos/8419266204/gallery/"]],"ollivander":[["img/ollivander/1.jpg","גלריית החנות ב-Yandex Maps","https://yandex.com.ge/maps/org/ollivander_s_store/126171248275/gallery/"],
 ["img/ollivander/2.jpg","גלריית החנות ב-Yandex Maps","https://yandex.com.ge/maps/org/ollivander_s_store/126171248275/gallery/"],
 ["img/ollivander/3.jpg","גלריית החנות ב-Yandex Maps","https://yandex.com.ge/maps/org/ollivander_s_store/126171248275/gallery/"],
-["img/ollivander/4.jpg","גלריית החנות ב-Yandex Maps","https://yandex.com.ge/maps/org/ollivander_s_store/126171248275/gallery/"]]};
+["img/ollivander/4.jpg","גלריית החנות ב-Yandex Maps","https://yandex.com.ge/maps/org/ollivander_s_store/126171248275/gallery/"]],"funicular":[["img/funicular/1.jpg","ნატა ქურდაძე · CC0 · Wikimedia Commons","https://commons.wikimedia.org/wiki/File:Funicular_Complex_today.jpg"],
+["img/funicular/2.jpg","Andrzej Wójtowicz · CC BY-SA 2.0 · Wikimedia Commons","https://commons.wikimedia.org/wiki/File:Tbilisi_-_Funicular_station_(9460956674).jpg"],
+["img/funicular/3.jpg","Kober · CC BY-SA 4.0 · Wikimedia Commons","https://commons.wikimedia.org/wiki/File:View_of_Tbilisi_from_Mt._Mtatsminda_02.JPG"],
+["img/funicular/4.jpg","Alexey Komarov · CC BY-SA 4.0 · Wikimedia Commons","https://commons.wikimedia.org/wiki/File:Sunset_over_Tbilisi_seen_from_Mtatsminda_mount_2022-07-30-2.jpg"]],"funilower":[["img/funilower/1.jpg","Robot8A · CC BY-SA 4.0 · Wikimedia Commons","https://commons.wikimedia.org/wiki/File:Tiflis_Funicular_lower_station.jpg"],
+["img/funilower/2.jpg","Andrewlevint · CC BY-SA 4.0 · Wikimedia Commons","https://commons.wikimedia.org/wiki/File:The_Tbilisi_Funicular._Lower_station.jpg"]]};
 const photosOf=i=>PHOTOS[PH_IDX[i]]||[];
