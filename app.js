@@ -8,9 +8,10 @@ trip:()=>`<div class="box"><h2>הטיול</h2><p>✈️ <b>16.11.2026</b> → �
 <a class="btn" href="https://share.google/c8NfljzoHhfhLHZFu" target="_blank" rel="noopener">🗺️ Google Maps</a>
 <a class="btn alt" href="https://residenceplaza.ge/" target="_blank" rel="noopener">🌐 אתר המלון</a></div>`+wantedBox(),
 fly:()=>V.flySec()+V.ppSec(),
-flySec:()=>`<div class="box"><h2>✈️ אל על · קוד הזמנה <span class="code">Y8YTF9</span></h2><p>מחלקה: Economy Lite · כל הארבעה באותה הזמנה</p><a class="btn alt" href="https://booking.elal.com/manage/login?lang=he">ניהול הזמנה / צ'ק-אין</a></div>
+flySec:()=>`<div class="box bpbox"><button type="button" class="btn bpbtn" id="bpopen">🎫 כרטיסי עלייה – ברקודים</button><p class="sub">לחצו כאן, הזינו את קוד הכספת, והברקודים יופיעו מיד</p></div>
+<div class="box"><h2>✈️ אל על · קוד הזמנה <span class="code">Y8YTF9</span></h2><p>מחלקה: Economy Lite · כל הארבעה באותה הזמנה</p><a class="btn alt" href="https://booking.elal.com/manage/login?lang=he">ניהול הזמנה / צ'ק-אין</a></div>
 <div class="box"><h2>הלוך – ב' 16.11.2026</h2><p><b>LY5107</b> · מופעל ע"י אל על עבור סאן דור<br>🛫 05:15 נתב"ג, <b>טרמינל 1</b><br>🛬 09:50 טביליסי (TBS) – שעון מקומי<br>⏱️ 2:35 שעות<br>💺 ויטאלי 47K · אדם 47J · יעל (יוליה) 48K · טום 48J</p>
-<div class="ok">✅ צ'ק-אין בוצע<br>🚪 פתיחת שער 04:25 · סגירת שער 05:00 · מספר השער טרם פורסם<br>🚕 מונית ב-1:50, הגעה משוערת ~2:20<br>כרטיסי העלייה בכספת למטה, עם אותו קוד כמו הדרכונים.</div></div>
+<div class="ok">✅ צ'ק-אין בוצע<br>🚪 פתיחת שער 04:25 · סגירת שער 05:00 · מספר השער טרם פורסם<br>🚕 מונית ב-1:50, הגעה משוערת ~2:20<br>כרטיסי העלייה בכפתור למעלה, עם אותו קוד כמו הדרכונים.</div></div>
 <div class="box"><h2>חזור – א' 22.11.2026</h2><p><b>LY5118</b> · מופעל ע"י KlasJet עבור סאן דור<br>🛫 12:05 טביליסי (TBS)<br>🛬 12:45 נתב"ג, <b>טרמינל 3</b> – שעון ישראל<br>⏱️ 2:40 שעות<br>💺 ויטאלי 10F · אדם 10E · יעל (יוליה) 09F · טום 09E</p></div>
 <div class="box"><h2>🧳 כבודה (Lite)</h2><p>לכל נוסע: תיק אישי מתחת למושב + טרולי עד 8 ק"ג (נשלח לבטן המטוס ללא עלות). <b>מזוודה לבטן לא כלולה (0PC)</b> – אם צריך לציוד ג'ודו, להוסיף מראש באתר (זול יותר מבשדה).</p><p class="sub">מקור: אישורי הזמנה של אל על, 29.9.2026. ההלוך יוצא מטרמינל 1 והחזרה נוחתת בטרמינל 3.</p></div>`,
 judoSec:()=>`<div class="box"><h2>🥋 מחנה האימונים</h2><p>שם המחנה / מועדון: ${T}<br>עיר ומקום לינה: טביליסי · <b>Hotel Residence Plaza</b><br>כתובת: 19 T Gujareti I St, Tbilisi 0144<br>איש קשר + טלפון: ${T}<br>לוח אימונים: ${T}<br>הסעה משדה התעופה: ${T}</p>
@@ -27,20 +28,35 @@ fam:()=>famView(),
 info:()=>`<div class="box"><h2>🚨 חירום</h2><p>מספר חירום אחיד: <b>112</b> (משטרה, אמבולנס, כבאות)</p>${tel("112")}</div>
 <div class="box"><h2>🌤️ מזג אוויר – טביליסי</h2><div id="wx">טוען…</div></div>
 <div class="box"><h2>🇮🇱 שגרירות ישראל בטביליסי</h2><a class="btn alt" href="https://embassies.gov.il/tbilisi">אתר השגרירות</a><p class="sub">טלפון חירום כללי של משרד החוץ: <a href="tel:+97225303155">+972-2-5303155</a></p></div>`,
-ppSec:()=>`<div class="box"><h2>🔐 דרכונים וכרטיסי עלייה (מוצפנים)</h2><div id="vault"></div></div>`};
+ppSec:()=>`<div class="box"><h2>🔐 כרטיסי עלייה ודרכונים (מוצפנים)</h2><div id="vault"></div></div>`};
 const enc=new TextEncoder(),dec=new TextDecoder();
 // ---------- encrypted vault ----------
 let VK=null;const b64=x=>Uint8Array.from(atob(x),c=>c.charCodeAt(0));
 async function vdec(k,id){const u=new Uint8Array(await (await fetch("sec/"+id+".bin")).arrayBuffer());return crypto.subtle.decrypt({name:"AES-GCM",iv:u.slice(0,12)},k,u.slice(12))}
-async function vault(){const el=$("#vault");if(!el)return;if(!VK){el.innerHTML=`<input id="vpw" type="password" inputmode="numeric" placeholder="סיסמה"><button class="btn" id="vgo">🔓 פתיחה</button><p class="sub" id="vmsg"></p>`;
-$("#vgo").onclick=async()=>{$("#vmsg").textContent="מפענח… (כמה שניות)";try{const m=await (await fetch("sec/meta.json")).json();const b=await crypto.subtle.importKey("raw",enc.encode($("#vpw").value),"PBKDF2",false,["deriveKey"]);const k=await crypto.subtle.deriveKey({name:"PBKDF2",salt:b64(m.salt),iterations:m.iter,hash:"SHA-256"},b,{name:"AES-GCM",length:256},false,["decrypt"]);await vdec(k,"info");VK=k;vault()}catch(e){$("#vmsg").textContent="סיסמה שגויה"}};return}
+async function vUnlock(pin){const m=await (await fetch("sec/meta.json")).json();const b=await crypto.subtle.importKey("raw",enc.encode(pin),"PBKDF2",false,["deriveKey"]);const k=await crypto.subtle.deriveKey({name:"PBKDF2",salt:b64(m.salt),iterations:m.iter,hash:"SHA-256"},b,{name:"AES-GCM",length:256},false,["decrypt"]);await vdec(k,"info");VK=k}
+function bpZoom(root){(root||document).querySelectorAll(".bp img").forEach(img=>img.onclick=()=>{const z=document.createElement("div");z.id="bpz";z.innerHTML=`<img src="${img.src}" alt="">`;z.onclick=()=>z.remove();document.body.appendChild(z)})}
+function bpCardsHtml(info,pref){return (info.boarding||[]).map(p=>`<div class="pp bp"><h3>🎫 ${p.n}${p.seat?" · "+p.seat:""}</h3><img id="${pref}${p.f}" alt="כרטיס עלייה"></div>`).join("")}
+async function vault(){const el=$("#vault");if(!el)return;if(!VK){el.innerHTML=`<p class="sub">אותו קוד של הדרכונים. אפשר גם ללחוץ על הכפתור האדום למעלה.</p><input id="vpw" type="password" inputmode="numeric" placeholder="סיסמה" autocomplete="off"><button class="btn" id="vgo">🔓 פתיחה</button><p class="sub" id="vmsg"></p>`;
+const go=async()=>{$("#vmsg").textContent="מפענח… (כמה שניות)";try{await vUnlock($("#vpw").value);vault();bpShow()}catch(e){$("#vmsg").textContent="סיסמה שגויה"}};
+$("#vgo").onclick=go;$("#vpw").onkeydown=e=>{if(e.key=="Enter")go()};return}
 const info=JSON.parse(dec.decode(await vdec(VK,"info")));
 const people=info.people.map(p=>`<div class="pp"><h3>${p.n}</h3>${p.exp?`<p>תוקף: <b>${p.exp.split("-").reverse().join("/")}</b></p>${new Date(p.exp)<new Date("2027-05-22")?'<div class="warn">⚠️ הדרכון בתוקף פחות מ-6 חודשים מיום החזרה (22.11.2026) – לבדוק מול דרישות הכניסה לגאורגיה ואל על, ולשקול חידוש.</div>':""}`:""}<img id="im-${p.f}" alt=""></div>`).join("");
-const bps=(info.boarding||[]).map(p=>`<div class="pp bp"><h3>🎫 ${p.n}${p.seat?" · "+p.seat:""}</h3><img id="im-${p.f}" alt="כרטיס עלייה"></div>`).join("");
-el.innerHTML=people+(bps?`<h2>כרטיסי עלייה · LY5107</h2><p class="sub">לחצו על כרטיס כדי להגדיל את הברקוד לסריקה</p>`+bps:"")+`<button class="btn alt" id="vlock">🔒 נעילה</button>`;
+const bps=bpCardsHtml(info,"im-");
+el.innerHTML=(bps?`<h2>כרטיסי עלייה · LY5107</h2><p class="sub">לחצו על כרטיס כדי להגדיל את הברקוד לסריקה</p>`+bps:"")+people+`<button class="btn alt" id="vlock">🔒 נעילה</button>`;
 $("#vlock").onclick=()=>{VK=null;vault()};
-for(const p of info.people.concat(info.boarding||[])){const d=await vdec(VK,p.f);$("#im-"+p.f).src=URL.createObjectURL(new Blob([d],{type:"image/jpeg"}))}
-el.querySelectorAll(".bp img").forEach(img=>img.onclick=()=>{const z=document.createElement("div");z.id="bpz";z.innerHTML=`<img src="${img.src}" alt="">`;z.onclick=()=>z.remove();document.body.appendChild(z)})}
+for(const p of (info.boarding||[]).concat(info.people)){const d=await vdec(VK,p.f);const im=$("#im-"+p.f);if(im)im.src=URL.createObjectURL(new Blob([d],{type:"image/jpeg"}))}
+bpZoom(el)}
+function bpOpen(){if(VK){bpShow();return}let d=$("#bpmodal");if(d)d.remove();d=document.createElement("div");d.id="bpmodal";
+d.innerHTML=`<div class="bpm"><h2>🎫 כרטיסי עלייה</h2><p class="sub">הזינו את הקוד של הכספת (אותו קוד של הדרכונים)</p><input id="bppin" type="password" inputmode="numeric" placeholder="סיסמה" autocomplete="off"><button class="btn" id="bpgo">🔓 פתיחה</button><p class="sub" id="bpmsg"></p><button type="button" class="btn alt" id="bpcx">סגירה</button></div>`;
+document.body.appendChild(d);const go=async()=>{$("#bpmsg").textContent="מפענח… (כמה שניות)";try{await vUnlock($("#bppin").value);d.remove();vault();bpShow()}catch(e){$("#bpmsg").textContent="סיסמה שגויה"}};
+$("#bpgo").onclick=go;$("#bppin").onkeydown=e=>{if(e.key=="Enter")go()};$("#bpcx").onclick=()=>d.remove();d.addEventListener("click",e=>{if(e.target===d)d.remove()});$("#bppin").focus()}
+async function bpShow(){if(!VK){bpOpen();return}let d=$("#bpmodal");if(d)d.remove();d=document.createElement("div");d.id="bpmodal";
+d.innerHTML=`<div class="bpm"><h2>🎫 כרטיסי עלייה · LY5107</h2><p class="sub">לחצו על כרטיס כדי להגדיל את הברקוד לסריקה</p><div id="bpards">טוען…</div><button type="button" class="btn alt" id="bpcx">סגירה</button></div>`;
+document.body.appendChild(d);const info=JSON.parse(dec.decode(await vdec(VK,"info")));const el=$("#bpards");
+el.innerHTML=bpCardsHtml(info,"bm-")||"<p>אין כרטיסי עלייה בכספת</p>";
+for(const p of info.boarding||[]){const data=await vdec(VK,p.f);const im=$("#bm-"+p.f);if(im)im.src=URL.createObjectURL(new Blob([data],{type:"image/jpeg"}))}
+bpZoom(el);$("#bpcx").onclick=()=>d.remove();d.addEventListener("click",e=>{if(e.target===d)d.remove()})}
+
 // ---------- weather ----------
 const WI=c=>c==0?"☀️":c<3?"🌤️":c<4?"☁️":c<50?"🌫️":c<70?"🌧️":c<80?"🌨️":"⛈️";
 const WXURL="https://api.open-meteo.com/v1/forecast?latitude=41.7151&longitude=44.8271&current=temperature_2m,weather_code&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max&hourly=temperature_2m,weather_code,precipitation_probability&timezone=Asia%2FTbilisi&forecast_days=16";
@@ -69,7 +85,7 @@ const ALIAS={judo:"info",go:"info",pp:"fly"},TABK=["info","trip","fam","fly","ro
 function go(t){t=ALIAS[t]||t;if(!TABK.includes(t))t="info";location.hash=t;$("#main").innerHTML=V[t]();$("#tabs").innerHTML=TABS.map(([k,i,l])=>`<button class="${k==t?'on':''}" data-t="${k}">${i}<br>${l}</button>`).join("");$("#tabs").querySelectorAll("button").forEach(b=>b.onclick=()=>go(b.dataset.t));scrollTo(0,0);
 if(t=="info")wx()
 if(t=="trip"){const n=Math.ceil((new Date("2026-11-16")-new Date())/864e5);$("#cd").textContent=n>0?`⏳ עוד ${n} ימים לטיסה`:""}
-if(t=="fly")vault()
+if(t=="fly"){vault();const b=$("#bpopen");if(b)b.onclick=bpOpen}
 if(t=="routes")routesInit()
 if(t=="fam")famInit()
 if(t=="pack")packInit()}

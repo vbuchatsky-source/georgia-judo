@@ -95,3 +95,10 @@ nav button,nav button.on{font-size:14px;padding:10px 2px;line-height:1.35}
 .pp.bp img{cursor:zoom-in;background:#fff}
 #bpz{position:fixed;inset:0;background:#000c;z-index:99;display:flex;align-items:center;justify-content:center;padding:12px;cursor:zoom-out}
 #bpz img{max-width:100%;max-height:100%;border-radius:12px;background:#fff}
+
+.bpbox{background:#fff4e8;border:2px solid #a3001b}
+.bpbtn{width:100%;font-size:20px;padding:16px 18px;margin:0}
+#bpmodal{position:fixed;inset:0;background:#000c;z-index:90;display:flex;align-items:flex-start;justify-content:center;padding:24px 12px;overflow:auto}
+.bpm{background:#fff;border-radius:16px;padding:16px;max-width:560px;width:100%;margin:0 auto 40px}
+.bpm input{width:100%;margin:8px 0;padding:12px;font-size:20px;border-radius:10px;border:1px solid #ddd;box-sizing:border-box}
+#bpz{z-index:100}
