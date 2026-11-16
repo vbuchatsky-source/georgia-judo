@@ -19,7 +19,9 @@ const PLACES=[
 {n:"Gardenia Shevardnadze",e:"138 Old Nadzaladevi",k:"a",d:"משתלה וגן עם בית קפה (זה לא הגן הבוטני הלאומי).",lat:41.73112,lng:44.83074,q:"Gardenia Shevardnadze, Tbilisi",s:[S3]},
 {n:"מצחטה – קתדרלת סבטיצחובלי ושוק המזכרות",e:"Mtskheta · Svetitskhoveli",k:"a",d:"עיירה כ-20 ק\"מ מטביליסי. הקתדרלה ושוק המזכרות נמצאים בסביבתה. בסרטון מופיע גם דוכן גלידת יין בלי שם; אחוז האלכוהול לא ידוע, ולכן לא לילדים.",lat:41.84227,lng:44.72099,q:"Svetitskhoveli Cathedral, Mtskheta",s:[S3]},
 {n:"Ethnographer",e:"105 Akaki Beliashvili St (דיגומי)",k:"r",d:"מסעדה גאורגית. בסרטון מוצג מופע ריקודים מסורתי; לוח המופעים העדכני לא נבדק.",lat:41.773268,lng:44.780228,q:"Ethnographer restaurant, 105 Akaki Beliashvili St, Tbilisi",s:[S3]},
-{n:"מסעדת אורטצ'לה",e:"Restaurant Ortachala · 2a Tsolikauri St (Kheivani)",k:"r",d:"מסעדה גאורגית ברובע אורטצ'לה, עם טרסה ומוזיקה חיה. פתוחה כל יום 10:00–00:00.",lat:41.682217,lng:44.826947,q:"Restaurant Ortachala, 2a Tsolikauri Street, Tbilisi",s:[],want:1,tel:"+995 555 66 44 00"}
+{n:"מסעדת אורטצ'לה",e:"Restaurant Ortachala · 2a Tsolikauri St (Kheivani)",k:"r",d:"מסעדה גאורגית ברובע אורטצ'לה, עם טרסה ומוזיקה חיה. פתוחה כל יום 10:00–00:00.",lat:41.682217,lng:44.826947,q:"Restaurant Ortachala, 2a Tsolikauri Street, Tbilisi",s:[],want:1,tel:"+995 555 66 44 00"},
+{n:"מסעדת לומוס תאי",e:"Lumos Thai Restaurant · 3 Gia Abesadze St",k:"r",d:"מסעדה תאית בעיר העתיקה, עם עיצוב בהשראת הארי פוטר. פתוחה כל יום 11:30–23:30.",lat:41.69283,lng:44.80316,q:"Lumos Thai Restaurant, 3 Gia Abesadze Street, Tbilisi",s:[],tel:"+995 598 59 93 69"},
+{n:"חנות אוליוונדרס",e:"Ollivander's Shop · 5 Kekelidze St, Vake",k:"a",d:"חנות נושא של הארי פוטר: שרביטים, גלימות, צעיפים ומזכרות. פתוחה כל יום בערך 10:00–21:00.",lat:41.70801,lng:44.77828,q:"Ollivander's Shop, 5 Kekelidze Street, Tbilisi",s:[],tel:"+995 322 11 04 50"}
 ];
 const hav=(a,b,c,d)=>{const R=6371,r=x=>x*Math.PI/180,x=Math.sin(r(c-a)/2)**2+Math.cos(r(a))*Math.cos(r(c))*Math.sin(r(d-b)/2)**2;return 2*R*Math.asin(Math.sqrt(x))};
 const nav=p=>"https://www.google.com/maps/dir/?api=1&destination="+encodeURIComponent(p.q)+"&travelmode=walking";
@@ -58,7 +60,8 @@ const ROUTES=[
 {i:6,note:"מפל קטן בערוץ התאנים",nx:"0.6 ק\"מ · 7 דק׳"},
 {i:7,note:"שוק תת־קרקעי – ואז חזרה למלון",nx:"2.5 ק\"מ · 33 דק׳ / או Bolt"}
 ]},
-{id:"ctr",n:"מרכז · כיכר החירות וגשר יבש",icon:"🚶",mode:"walking",modeHe:"הליכה (+Bolt אופציונלי)",start:"10:30",km:8.0,min:106,tip:"הקטע מהמלון לכיכר ארוך (~3 ק\"מ). אפשר Bolt לכיכר החירות ואז להמשיך ברגל.",stops:[
+{id:"ctr",n:"מרכז · כיכר החירות וגשר יבש",icon:"🚶",mode:"walking",modeHe:"הליכה (+Bolt אופציונלי)",start:"10:30",km:8.1,min:108,tip:"הקטע מהמלון לכיכר ארוך (~3 ק\"מ). מסעדת לומוס תאי נמצאת בדרך. אפשר Bolt לכיכר ואז להמשיך ברגל.",stops:[
+{i:18,note:"מסעדה תאית עם עיצוב בהשראת הארי פוטר. פתוחה 11:30–23:30.",nx:"0.3 ק\"מ · 4 דק׳"},
 {i:8,note:"כיכר מרכזית עם עמוד גאורגי הקדוש",nx:"0.1 ק\"מ · 2 דק׳"},
 {i:10,note:"צהריים/ערב – צלעות, חצ'פורי ויין",nx:"0.8 ק\"מ · 11 דק׳"},
 {i:11,note:"קפה/קינוח ליד הכיכר (בדקו סניף)",nx:"0.4 ק\"מ · 6 דק׳"},
@@ -69,8 +72,9 @@ const ROUTES=[
 {i:13,note:"אנדרטה + תצפית לים טביליסי",nx:"8.2 ק\"מ · 13 דק׳ נסיעה"},
 {i:16,note:"מסעדה גאורגית – ערב עם ריקודים (אם יש מופע)",nx:"14.4 ק\"מ · 19 דק׳ חזרה למלון"}
 ]},
-{id:"mtsk",n:"חצי יום במצחטה",icon:"🚕",mode:"driving",modeHe:"מונית / Bolt",start:"09:00",km:56.4,min:68,tip:"נסיעה הלוך־חזור ~שעה ו־10 דק׳. השאירו 2–3 שעות באתר עצמו. חזרה עד הצהריים/אחה״צ.",stops:[
-{i:15,note:"קתדרלת סבטיצחובלי ושוק מזכרות. גלידת יין בסרטון – לא לילדים.",nx:"28.9 ק\"מ · 36 דק׳ חזרה למלון"}
+{id:"mtsk",n:"חצי יום במצחטה",icon:"🚕",mode:"driving",modeHe:"מונית / Bolt",start:"09:00",km:58.6,min:73,tip:"נסיעה הלוך־חזור כשעה ו־15 דק׳, כולל עצירה קצרה בחנות אוליוונדרס בדרך חזרה (פתוחה 10:00–21:00). השאירו 2–3 שעות באתר עצמו.",stops:[
+{i:15,note:"קתדרלת סבטיצחובלי ושוק מזכרות. גלידת יין בסרטון – לא לילדים.",nx:"22.8 ק\"מ · 29 דק׳ נסיעה"},
+{i:19,note:"חנות מזכרות בהשראת הארי פוטר – שרביטים, גלימות וצעיפים.",nx:"8.3 ק\"מ · 12 דק׳ חזרה למלון"}
 ]}
 ];
 function routeMaps(r){
@@ -97,7 +101,7 @@ ${r.stops.map((s,idx)=>stopCard(r,s,idx)).join("")}
 <details class="more"><summary>ℹ️ על המסלולים</summary><p>כל מסלול מתחיל ונגמר ב־Hotel Residence Plaza. המרחקים והזמנים לפי ניתוב הליכה/נסיעה אמיתי (OSRM), בלי זמן הביקור עצמו.</p><p>📅 16–22.11 · שלבו מסלול בין האימונים. ב־22.11 הטיסה ב־12:05 – רק משהו קצר בבוקר.</p></details>
 ${clinicBox()}`}
 const esc=t=>String(t).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-const STOPEMO=["🌉","🌳","🚡","🗽","🍷","♨️","💦","🛍️","🏛️","🍲","🍖","🍰","🖼️","🗿","🌷","⛪","💃"];
+const STOPEMO=["🌉","🌳","🚡","🗽","🍷","♨️","💦","🛍️","🏛️","🍲","🍖","🍰","🖼️","🗿","🌷","⛪","💃","🍽️","🍜","🪄"];
 function gallery(i){const L=photosOf(i);
   if(!L.length)return `<div class="gal none">${STOPEMO[i]||"📍"} <span>אין תמונות</span></div>`;
   return `<div class="gal" data-p="${i}"><div class="gtrack">${L.map((p,k)=>`<img src="${p[0]}" ${k?'loading="lazy"':''} decoding="async" alt="${esc(PLACES[i].n)} ${k+1}" data-k="${k}">`).join("")}</div>${L.length>1?`<div class="dots">${L.map((_,k)=>`<i class="${k?"":"on"}"></i>`).join("")}</div>`:""}</div>`}
