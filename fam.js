@@ -86,7 +86,7 @@ function famInit(){if(!fs.room){$("#fcreate").onclick=famCreate;return}
   $("#finv").onclick=async()=>{const u=famLink(),t="איפה כולם – פתחו את הקישור כדי לראות אחד את השני בטביליסי 🇬🇪\n"+u;
     if(navigator.share)try{await navigator.share({title:"איפה כולם",text:t});return}catch(e){if(e.name=="AbortError")return}
     location.href="https://wa.me/?text="+encodeURIComponent(t)};
-  fs.map=null;fs.mk={};fs.pin={};fs.ln={};fs.pm=null;fs.spreadHooked=0;fs.leg=null;fs.xctl=null;fs.hctl=null;fs.sctl=null;fs.rt=null;fs.popHooked=0;fs.hereMk=null;fs.hereAcc=null;fs.sm=null;fs.saveHooked=0;
+  fs.map=null;fs.mk={};fs.pin={};fs.ln={};fs.pm=null;fs.spreadHooked=0;fs.leg=null;fs.xctl=null;fs.hctl=null;fs.sctl=null;fs.rt=null;fs.popHooked=0;fs.hereMk=null;fs.hereAcc=null;fs.sm=null;fs.so=null;fs.saveHooked=0;
   famLeaflet().then(()=>{if(!$("#fmap"))return;fs.map=L.map("fmap",{zoomControl:false,attributionControl:true}).setView([HOTEL.lat,HOTEL.lng],14);
     L.tileLayer("https://tile.openstreetmap.de/{z}/{x}/{y}.png",{maxZoom:21,maxNativeZoom:19,attribution:"© OpenStreetMap"}).addTo(fs.map);
     if(!fs.map.getPane("routes")){const pn=fs.map.createPane("routes");pn.style.zIndex=350;pn.style.pointerEvents="none"}
@@ -415,7 +415,18 @@ function savLmScore(t,distM){
   let s=cat;
   if(t.wikidata||t.wikipedia||t["wikipedia:en"]||t["wikipedia:ka"]||t["wikipedia:he"])s+=40;
   if(t.brand||t["brand:wikidata"])s+=10;
+  if(t.wikimedia_commons&&!/^Category:/i.test(t.wikimedia_commons))s+=25;
+  else if(t.image)s+=20;
   return s-distM/20;
+}
+function savLmPhotoHints(t){
+  const commons=t.wikimedia_commons||"",img=t.image||"";
+  return{
+    wd:t.wikidata||"",
+    wp:t["wikipedia:en"]||t["wikipedia:he"]||t.wikipedia||t["wikipedia:ka"]||"",
+    commons:/^Category:/i.test(commons)?"":commons,
+    img:img
+  };
 }
 function savLmFromOverpass(data,la,lo){
   const out=[],seen=new Set();
@@ -428,7 +439,7 @@ function savLmFromOverpass(data,la,lo){
     const score=savLmScore(t,distM);if(score<0)continue;
     const key=n.toLowerCase()+"|"+Number(lat).toFixed(4)+"|"+Number(lon).toFixed(4);
     if(seen.has(key))continue;seen.add(key);
-    out.push({n,la:+lat,lo:+lon,d,kind:savLmKind(t),score});
+    out.push(Object.assign({n,la:+lat,lo:+lon,d,kind:savLmKind(t),score},savLmPhotoHints(t)));
   }
   const byName=new Map();
   for(const x of out){
@@ -474,40 +485,114 @@ async function savLookup(la,lo){
     return savLmFromNominatim(await r.json(),la,lo);
   }catch(e){return[]}
 }
-function savLmLabel(lm){
+function savLmLabel(lm,snapped){
   if(!lm||!lm.n)return"";
   if(lm.kind==="street"||lm.kind==="area")return lm.n;
-  if(!(lm.d>=0.04))return lm.n;
+  if(snapped||!(lm.d>=0.04))return lm.n;
   return "ליד "+lm.n+" · "+kmTxt(lm.d);
 }
-function savLmSlim(x){return{n:x.n,la:x.la,lo:x.lo,d:x.d,kind:x.kind}}
+function savLmSlim(x){return{n:x.n,la:x.la,lo:x.lo,d:x.d,kind:x.kind,wd:x.wd||"",wp:x.wp||"",commons:x.commons||"",img:x.img||"",ph:x.ph||""}}
+function savCanSnap(lm){return !!(lm&&lm.kind!=="street"&&lm.kind!=="area"&&isFinite(lm.la)&&isFinite(lm.lo)&&lm.d<=0.2)}
 function savApplyLm(id,cands){
   const a=savLoad(),s=a.find(x=>x.id===id);if(!s)return;
+  if(!isFinite(s.ola)||!isFinite(s.olo)){s.ola=s.la;s.olo=s.lo}
   s.lmPending=0;s.lmTried=1;
   if(cands&&cands.length){
     s.lms=cands.slice(0,3).map(savLmSlim);
     s.lm=s.lms[0];
-    if(s.auto!==0&&savIsDefaultName(s.n)){s.n=savLmLabel(s.lm);s.auto=1}
+    if(s.auto!==0){s.n=savLmLabel(s.lm,!s.pinned&&savCanSnap(s.lm));s.auto=1}
+    if(!s.pinned&&savCanSnap(s.lm)){s.la=s.lm.la;s.lo=s.lm.lo}
+    s.ph=s.lm.ph||"";
   }
   savStore(a);savMarkers();savRender(true);
+  if(s.lm&&!s.ph)savAttachPhoto(id);
 }
 async function savResolve(id,la,lo){
   const cands=await savLookup(la,lo);
   savApplyLm(id,cands);
 }
+function savFilePath(file){
+  let f=String(file||"").trim();if(!f)return"";
+  if(/^https:\/\/upload\.wikimedia\.org\//i.test(f))return f;
+  if(/^https:\/\//i.test(f)&&/\.(jpe?g|png|gif|webp|svg)(\?|$)/i.test(f))return f.replace(/^http:\/\//i,"https://");
+  f=f.replace(/^https?:\/\/commons\.wikimedia\.org\/wiki\/(Special:FilePath\/|File:)/i,"");
+  f=f.replace(/^File:/i,"").replace(/_/g," ");
+  if(!f||/^Category:/i.test(f)||/^https?:\/\//i.test(f))return"";
+  return "https://commons.wikimedia.org/wiki/Special:FilePath/"+encodeURIComponent(f.trim())+"?width=400";
+}
+function savSafePh(u){return /^https:\/\//i.test(u||"")?u:""}
+async function savResolvePhoto(lm){
+  if(!lm)return"";
+  if(savSafePh(lm.ph))return lm.ph;
+  const direct=savFilePath(lm.img)||savFilePath(lm.commons);
+  if(direct){lm.ph=direct;return direct}
+  const wd=String(lm.wd||"").split(/[/#]/).pop();
+  if(/^Q\d+$/i.test(wd)){
+    try{
+      const r=await savFetch("https://www.wikidata.org/w/api.php?action=wbgetentities&ids="+encodeURIComponent(wd)+"&props=claims&format=json&origin=*",{headers:{Accept:"application/json"}},5000);
+      if(r.ok){
+        const d=await r.json(),file=((((d.entities||{})[wd]||{}).claims||{}).P18||[])[0];
+        const name=file&&file.mainsnak&&file.mainsnak.datavalue&&file.mainsnak.datavalue.value;
+        const u=savFilePath(name);if(u){lm.ph=u;return u}
+      }
+    }catch(e){}
+  }
+  let wp=lm.wp||"";
+  if(wp){
+    try{
+      let lang="en",title=wp;
+      const m=/^([a-z]{2,3}):(.+)$/i.exec(wp);
+      if(m){lang=m[1].toLowerCase();title=m[2]}
+      title=title.replace(/ /g,"_");
+      const r=await savFetch("https://"+lang+".wikipedia.org/api/rest_v1/page/summary/"+encodeURIComponent(title),{headers:{Accept:"application/json"}},5000);
+      if(r.ok){
+        const d=await r.json(),u=(d.thumbnail&&d.thumbnail.source)||(d.originalimage&&d.originalimage.source);
+        if(savSafePh(u)){lm.ph=u;return u}
+      }
+    }catch(e){}
+  }
+  return"";
+}
+async function savAttachPhoto(id){
+  const a=savLoad(),s=a.find(x=>x.id===id);if(!s||!s.lm||s.ph)return;
+  const ph=await savResolvePhoto(s.lm);
+  const b=savLoad(),x=b.find(z=>z.id===id);if(!x)return;
+  x.phTried=1;
+  if(ph){x.ph=ph;if(x.lm)x.lm.ph=ph;if(x.lms){const same=x.lms.find(m=>m.n===x.lm.n);if(same)same.ph=ph}}
+  savStore(b);if(ph){savMarkers();savRender(true)}
+}
 function savFillMissing(){
   if(fs.savFilling||(typeof navigator!=="undefined"&&navigator.onLine===false))return;
-  const pending=savLoad().filter(s=>!s.lmTried&&!s.lmPending&&!s.lm);
-  if(!pending.length)return;
+  const all=savLoad();
+  const pending=all.filter(s=>!s.lmTried&&!s.lmPending&&!s.lm);
+  const needPh=all.filter(s=>s.lm&&!s.ph&&!s.phTried);
+  if(!pending.length&&!needPh.length){
+    let ch=0;for(const s of all){if(savMaybeSnap(s))ch=1}if(ch){savStore(all);savMarkers();savRender(true)}
+    return;
+  }
   fs.savFilling=1;
   (async()=>{
     for(const s of pending){
       const a=savLoad(),x=a.find(z=>z.id==s.id);if(!x||x.lmTried||x.lm)continue;
       x.lmPending=1;savStore(a);savRender(true);
-      await savResolve(s.id,s.la,s.lo);
+      const from=isFinite(x.ola)?x.ola:x.la,fo=isFinite(x.olo)?x.olo:x.lo;
+      await savResolve(s.id,from,fo);
     }
+    for(const s of savLoad().filter(z=>z.lm&&!z.ph&&!z.phTried)){
+      const a=savLoad(),x=a.find(z=>z.id==s.id);if(!x)continue;
+      x.phTried=1;savStore(a);
+      await savAttachPhoto(x.id);
+    }
+    const b=savLoad();let ch=0;for(const s of b){if(savMaybeSnap(s))ch=1}
+    if(ch){savStore(b);savMarkers();savRender(true)}
     fs.savFilling=0;
   })();
+}
+function savMaybeSnap(s){
+  if(s.pinned||!s.lm||!savCanSnap(s.lm))return false;
+  if(!isFinite(s.ola)||!isFinite(s.olo)){s.ola=s.la;s.olo=s.lo}
+  if(s.la===s.lm.la&&s.lo===s.lm.lo)return false;
+  s.la=s.lm.la;s.lo=s.lm.lo;return true;
 }
 
 let savLast=0;
@@ -515,7 +600,7 @@ function savAskAt(la,lo,prefix){
   if(Date.now()-savLast<800)return;savLast=Date.now();
   const id=Date.now().toString(36)+Math.random().toString(36).slice(2,6);
   const a=savLoad();
-  a.unshift({id,n:savNameDefault(prefix),la:+la,lo:+lo,t:Date.now(),auto:1,lmPending:1});
+  a.unshift({id,n:savNameDefault(prefix),la:+la,lo:+lo,ola:+la,olo:+lo,t:Date.now(),auto:1,lmPending:1});
   savStore(a);savMarkers();savRender(true);
   savResolve(id,+la,+lo);
 }
@@ -554,8 +639,11 @@ function savPick(id){
     d.querySelectorAll(".savpick").forEach(b=>b.onclick=()=>{
       const i=+b.dataset.i,all=savLoad(),x=all.find(z=>z.id==id);
       d.remove();if(!x||!x.lms||!x.lms[i])return;
-      x.lm=x.lms[i];x.n=savLmLabel(x.lm);x.auto=0;
+      x.lm=x.lms[i];x.pinned=0;x.ph=x.lm.ph||"";
+      if(savCanSnap(Object.assign({},x.lm,{d:0}))||(x.lm.kind!=="street"&&x.lm.kind!=="area"&&isFinite(x.lm.la))){x.la=x.lm.la;x.lo=x.lm.lo}
+      x.n=savLmLabel(x.lm,true);x.auto=0;
       savStore(all);savMarkers();savRender(true);
+      if(x.lm&&!x.ph)savAttachPhoto(id);
     });
     $("#savcx").onclick=()=>d.remove();
     d.addEventListener("click",e=>{if(e.target===d)d.remove()});
@@ -571,18 +659,37 @@ function savLmSub(s){
   const dist=s.lm.d>=0.04?" · "+kmTxt(s.lm.d):"";
   return `<span class="sub lmline">ליד ${esc(s.lm.n)}${dist}</span>`;
 }
+function savPhImg(s,cls){
+  const u=savSafePh(s.ph||(s.lm&&s.lm.ph));if(!u)return"";
+  return `<img class="${cls}" src="${esc(u)}" alt="" referrerpolicy="no-referrer" onerror="this.onerror=null;const p=this.parentNode;this.remove();if(p&&p.classList&&p.classList.contains('savico')&&!p.querySelector('img'))p.textContent='⭐'">`;
+}
 function savPopup(s){
+  const ph=savPhImg(s,"savph");
   const lm=s.lm?`<p class="sub">${s.n&&s.n.indexOf(s.lm.n)>=0?esc(s.lm.n)+(s.lm.d>=0.04?" · "+kmTxt(s.lm.d):""):"ליד "+esc(s.lm.n)+(s.lm.d>=0.04?" · "+kmTxt(s.lm.d):"")}</p>`:s.lmPending?`<p class="sub lmwip">מחפש מקום מוכר באזור…</p>`:"";
   const pick=s.lms&&s.lms.length>1?`<button type="button" class="btn alt" onclick="savPick('${s.id}')">בחירה אחרת</button>`:"";
-  return `<div class="ppop"><b>⭐ ${esc(s.n)}</b><p class="sub">${savWhen(s.t)}</p>${lm}<a class="btn" href="${savNav(s)}" target="_blank" rel="noopener">🧭 ניווט</a>${pick}</div>`;
+  return `<div class="ppop">${ph}<b>⭐ ${esc(s.n)}</b><p class="sub">${savWhen(s.t)}</p>${lm}<a class="btn" href="${savNav(s)}" target="_blank" rel="noopener">🧭 ניווט</a>${pick}<button type="button" class="btn alt savdel" onclick="savDelete('${s.id}')">🗑 מחיקה</button></div>`;
+}
+function savDragEnd(id,la,lo){
+  const a=savLoad(),s=a.find(x=>x.id==id);if(!s)return;
+  if(!isFinite(s.ola)||!isFinite(s.olo)){s.ola=s.la;s.olo=s.lo}
+  s.la=+la;s.lo=+lo;s.pinned=1;s.lmPending=1;s.lmTried=0;s.ph="";s.phTried=0;
+  savStore(a);savMarkers();savRender(true);
+  savResolve(id,+la,+lo);
 }
 function savMarkers(){
   if(!fs.map)return;
   (fs.sm||[]).forEach(m=>m.remove());fs.sm=[];
+  (fs.so||[]).forEach(m=>m.remove());fs.so=[];
   for(const s of savLoad()){
-    const mk=L.marker([s.la,s.lo],{icon:L.divIcon({className:"pmid",html:`<div class="pmk fb savmk">⭐</div>`,iconSize:[32,32],iconAnchor:[16,16]}),zIndexOffset:-50,riseOnHover:true}).addTo(fs.map);
+    if(isFinite(s.ola)&&isFinite(s.olo)&&hav(s.la,s.lo,s.ola,s.olo)>0.015){
+      const dot=L.circleMarker([s.ola,s.olo],{radius:5,weight:1,color:"#fff",fillColor:"#b8860b",fillOpacity:.4,opacity:.55,interactive:false}).addTo(fs.map);
+      fs.so.push(dot);
+    }
+    const mk=L.marker([s.la,s.lo],{icon:L.divIcon({className:"pmid",html:`<div class="pmk fb savmk">⭐</div>`,iconSize:[32,32],iconAnchor:[16,16]}),draggable:true,autoPan:true,zIndexOffset:80,riseOnHover:true}).addTo(fs.map);
     mk.bindTooltip(s.n,{permanent:true,direction:"bottom",offset:[0,6],className:"plab-tip",opacity:1});
     mk.bindPopup(savPopup(s),{className:"fam-pop",closeButton:true,autoPan:true,maxWidth:240,minWidth:180,autoPanPadding:[16,56]});
+    mk.on("dragstart",()=>{mk.closePopup()});
+    mk.on("dragend",e=>{const ll=e.target.getLatLng();savDragEnd(s.id,ll.lat,ll.lng)});
     fs.sm.push(mk);
   }
 }
@@ -595,7 +702,7 @@ function savRender(force){
   }
   el.dataset.ids=ids;
   const rows=a.length?a.map(s=>`<div class="frow savrow" data-sid="${s.id}">
-    <span class="fav savico">⭐</span>
+    <span class="fav savico">${savPhImg(s,"savthumb")||"⭐"}</span>
     <div class="fi"><b>${esc(s.n)}</b><span class="sub">${savWhen(s.t)} · <span class="sdist">${savDist(s)}</span></span>${savLmSub(s)}${s.lms&&s.lms.length>1?`<button type="button" class="savelink" data-act="pick" data-id="${s.id}">בחירה אחרת</button>`:""}</div>
     <a class="ib" href="${savNav(s)}" target="_blank" rel="noopener" aria-label="ניווט">🧭</a>
     <button type="button" class="ib" data-act="ren" data-id="${s.id}" aria-label="שינוי שם">✏️</button>
@@ -621,7 +728,7 @@ function famHookSaveMap(){
   fs.map.on("contextmenu",e=>{
     if(e.originalEvent)e.originalEvent.preventDefault();
     const t=e.originalEvent&&e.originalEvent.target;
-    if(t&&t.closest&&t.closest(".leaflet-control,.leaflet-popup,.rtleg"))return;
+    if(t&&t.closest&&t.closest(".leaflet-control,.leaflet-popup,.rtleg,.leaflet-marker-icon,.pmid,.savmk,.here-ico"))return;
     savAskAt(e.latlng.lat,e.latlng.lng,"נקודה");
   });
   const el=fs.map.getContainer();
@@ -630,7 +737,7 @@ function famHookSaveMap(){
   el.addEventListener("touchstart",e=>{
     if(e.touches.length!==1){clear();return}
     const t=e.target;
-    if(t&&t.closest&&t.closest(".leaflet-control,.leaflet-popup,.rtleg"))return;
+    if(t&&t.closest&&t.closest(".leaflet-control,.leaflet-popup,.rtleg,.leaflet-marker-icon,.pmid,.savmk,.here-ico"))return;
     const p=e.touches[0];start={x:p.clientX,y:p.clientY};
     timer=setTimeout(()=>{timer=null;if(!start||!fs.map)return;
       const ll=fs.map.containerPointToLatLng(fs.map.mouseEventToContainerPoint({clientX:start.x,clientY:start.y}));
