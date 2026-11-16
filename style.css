@@ -164,3 +164,8 @@ body.fmap-on{overflow:hidden}
 #savdlg .savin{width:100%;max-width:400px;background:#fff;border-radius:18px;padding:18px 16px;box-shadow:0 8px 30px #0004}
 #savdlg h2{margin:0 0 8px;font-size:20px}
 #savdlg .fbtns{margin-top:10px}
+
+.lmwip{color:#1a73e8}
+.lmline{display:block}
+.savelink{display:inline;border:0;background:none;color:#1a73e8;font:inherit;font-size:13px;font-weight:700;padding:0;margin-top:2px;cursor:pointer;text-align:right}
+#savdlg .savpick{text-align:right;margin-top:8px;white-space:normal;line-height:1.3}

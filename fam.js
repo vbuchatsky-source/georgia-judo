@@ -93,7 +93,7 @@ function famInit(){if(!fs.room){$("#fcreate").onclick=famCreate;return}
     L.marker([HOTEL.lat,HOTEL.lng],{icon:L.divIcon({className:"",html:`<div class="fmk" style="--c:#7a2e1d">🏨</div>`,iconSize:[36,36],iconAnchor:[18,18]}),zIndexOffset:50}).addTo(fs.map).bindTooltip("המלון");
     const cpop=`<div class="ppop"><b>🥋 מחנה האימונים</b><p class="sub" dir="ltr" style="text-align:right">${CAMP.e}</p><a class="btn" href="${typeof nav==="function"?nav(CAMP,"driving"):"https://www.google.com/maps/dir/?api=1&destination="+CAMP.lat+","+CAMP.lng+"&travelmode=driving"}" target="_blank" rel="noopener">🧭 ניווט</a></div>`;
     L.marker([CAMP.lat,CAMP.lng],{icon:L.divIcon({className:"",html:`<div class="fmk" style="--c:#1a5c3a">🥋</div>`,iconSize:[36,36],iconAnchor:[18,18]}),zIndexOffset:60}).addTo(fs.map).bindTooltip("🥋 מחנה האימונים",{permanent:true,direction:"bottom",offset:[0,16],className:"camp-tip",opacity:1}).bindPopup(cpop,{className:"fam-pop",closeButton:true,autoPan:true,maxWidth:240,minWidth:220,autoPanPadding:[16,56]});
-    famRouteLines();famPlaceMarkers();famAddExpand();famAddHereCtl();famHookPopups();famHookSaveMap();savMarkers();famHereDraw();
+    famRouteLines();famPlaceMarkers();famAddExpand();famAddHereCtl();famHookPopups();famHookSaveMap();savMarkers();famHereDraw();if(navigator.onLine!==false)savFillMissing();
     fs.map.invalidateSize();fs.fit=true;famHookSpread();famRender()}).catch(()=>{$("#fmap").innerHTML=`<p class="sub" style="padding:20px;text-align:center">המפה לא נטענה (אין אינטרנט?)</p>`});
   famRender()}
 function famLeaflet(){if(window.L)return Promise.resolve();return new Promise((ok,no)=>{const c=document.createElement("link");c.rel="stylesheet";c.href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";document.head.appendChild(c);
@@ -340,6 +340,7 @@ function savWhen(t){const d=new Date(t),pad=n=>String(n).padStart(2,"0");return 
 function savDist(s){const h=fs.here||fs.mine;return h?"ממני "+kmTxt(hav(h.la,h.lo,s.la,s.lo)):"מחכה למיקום"}
 function savMode(s){const h=fs.here||fs.mine;return h&&hav(h.la,h.lo,s.la,s.lo)<=3?"walking":"driving"}
 function savNav(s){return "https://www.google.com/maps/dir/?api=1&destination="+s.la+","+s.lo+"&travelmode="+savMode(s)}
+function savIsDefaultName(n){return /^(מקום|נקודה)\s+\d/.test(n||"")}
 function savDlg(title,val){
   return new Promise(ok=>{
     const prev=$("#savdlg");if(prev)prev.remove();
@@ -354,14 +355,169 @@ function savDlg(title,val){
     inp.onkeydown=e=>{if(e.key=="Enter"){e.preventDefault();done(inp.value.trim())}if(e.key=="Escape")done(null)};
   });
 }
-let savLast=0;
-async function savAskAt(la,lo,prefix){
-  if(Date.now()-savLast<800)return;savLast=Date.now();
-  const name=await savDlg("שם למקום",savNameDefault(prefix));
-  if(name==null)return;
-  const a=savLoad();
-  a.unshift({id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),n:name||savNameDefault(prefix),la:+la,lo:+lo,t:Date.now()});
+
+function savFetch(url,opts,ms){
+  const ac=new AbortController(),t=setTimeout(()=>ac.abort(),ms||6500);
+  return fetch(url,Object.assign({signal:ac.signal},opts||{})).finally(()=>clearTimeout(t));
+}
+function savOvQuery(la,lo){
+  const a=`(around:500,${la},${lo})`;
+  return `[out:json][timeout:6];(
+  nwr["name"]["shop"~"^(mall|department_store|supermarket)$"]${a};
+  nwr["name"]["tourism"~"^(attraction|museum|hotel|gallery|theme_park|zoo|castle)$"]${a};
+  nwr["name"]["historic"]${a};
+  nwr["name"]["amenity"~"^(place_of_worship|cinema|theatre|marketplace|university|college|hospital|townhall|bus_station)$"]${a};
+  nwr["name"]["railway"~"^(station|halt|subway_entrance)$"]${a};
+  nwr["name"]["station"="subway"]${a};
+  nwr["name"]["public_transport"="station"]${a};
+  nwr["name"]["leisure"~"^(park|garden|stadium|sports_centre)$"]${a};
+  nwr["name"]["place"="square"]${a};
+);out center tags;`;
+}
+function savLmName(t){
+  const n=t["name:he"]||t["name:en"]||t.int_name||t.name||t.brand||"";
+  return String(n).trim();
+}
+function savLmKind(t){
+  if(t.shop==="mall"||t.shop==="department_store")return"mall";
+  if(/^(attraction|museum|gallery|theme_park|zoo|castle)$/.test(t.tourism||""))return"sight";
+  if(t.historic)return"historic";
+  if(t.railway==="station"||t.railway==="halt"||t.station==="subway"||t.public_transport==="station")return"station";
+  if(t.railway==="subway_entrance")return"metro";
+  if(t.place==="square")return"square";
+  if(t.amenity==="place_of_worship")return"church";
+  if(t.tourism==="hotel")return"hotel";
+  if(t.leisure==="park"||t.leisure==="garden")return"park";
+  if(t.leisure==="stadium"||t.leisure==="sports_centre")return"sport";
+  if(t.shop==="supermarket")return"shop";
+  if(t.amenity)return t.amenity;
+  return"place";
+}
+function savLmCat(t){
+  const shop=t.shop,tour=t.tourism,am=t.amenity,rw=t.railway,lei=t.leisure;
+  if(shop==="mall"||shop==="department_store")return 100;
+  if(/^(attraction|museum|gallery|theme_park|zoo|castle)$/.test(tour||""))return 95;
+  if(rw==="station"||rw==="halt"||t.station==="subway"||t.public_transport==="station")return 88;
+  if(t.historic)return 85;
+  if(t.place==="square")return 82;
+  if(am==="place_of_worship")return 80;
+  if(tour==="hotel")return 75;
+  if(lei==="stadium")return 74;
+  if(lei==="park"||lei==="garden")return 72;
+  if(/^(cinema|theatre|marketplace|university|college|hospital|townhall|bus_station)$/.test(am||""))return 70;
+  if(lei==="sports_centre")return 68;
+  if(shop==="supermarket")return 65;
+  if(rw==="subway_entrance")return 60;
+  return 0;
+}
+function savLmScore(t,distM){
+  const cat=savLmCat(t);if(!cat)return -1;
+  let s=cat;
+  if(t.wikidata||t.wikipedia||t["wikipedia:en"]||t["wikipedia:ka"]||t["wikipedia:he"])s+=40;
+  if(t.brand||t["brand:wikidata"])s+=10;
+  return s-distM/20;
+}
+function savLmFromOverpass(data,la,lo){
+  const out=[],seen=new Set();
+  for(const e of data.elements||[]){
+    const t=e.tags||{},c=e.center||{},lat=c.lat??e.lat,lon=c.lon??e.lon;
+    if(!isFinite(lat)||!isFinite(lon))continue;
+    const n=savLmName(t);if(!n||n.length<2)continue;
+    const d=hav(la,lo,lat,lon),distM=d*1000;
+    if(distM>520)continue;
+    const score=savLmScore(t,distM);if(score<0)continue;
+    const key=n.toLowerCase()+"|"+Number(lat).toFixed(4)+"|"+Number(lon).toFixed(4);
+    if(seen.has(key))continue;seen.add(key);
+    out.push({n,la:+lat,lo:+lon,d,kind:savLmKind(t),score});
+  }
+  const byName=new Map();
+  for(const x of out){
+    const k=x.n.toLowerCase(),prev=byName.get(k);
+    if(!prev){byName.set(k,x);continue}
+    const prevP=prev.score+(prev.d*1000)/20,p=x.score+(x.d*1000)/20,best=Math.max(prevP,p);
+    const closer=x.d<prev.d?x:prev;
+    closer.score=best-(closer.d*1000)/20;
+    closer.kind=prev.score>x.score?prev.kind:x.kind;
+    byName.set(k,closer);
+  }
+  return [...byName.values()].sort((a,b)=>b.score-a.score||a.d-b.d).slice(0,8);
+}
+function savLmFromNominatim(data,la,lo){
+  if(!data)return[];
+  const addr=data.address||{},nd=data.namedetails||{};
+  let n=(nd["name:he"]||nd["name:en"]||nd.int_name||data.name||nd.name||"").trim();
+  let kind="place",plat=isFinite(+data.lat)?+data.lat:la,plon=isFinite(+data.lon)?+data.lon:lo;
+  let d=hav(la,lo,plat,plon);
+  if(!n){
+    const road=addr.road||addr.pedestrian||addr.footway||addr.square,house=addr.house_number;
+    if(road){n=house?house+" "+road:road;kind="street";d=0}
+    else{n=addr.neighbourhood||addr.suburb||"";kind="area";d=0}
+  }
+  if(!n)return[];
+  return[{n,la:plat,lo:plon,d,kind,score:1}];
+}
+async function savLookup(la,lo){
+  const body="data="+encodeURIComponent(savOvQuery(la,lo));
+  const urls=["https://overpass-api.de/api/interpreter","https://overpass.kumi.systems/api/interpreter"];
+  for(const url of urls){
+    try{
+      const r=await savFetch(url,{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},body},6500);
+      if(!r.ok)continue;
+      const cands=savLmFromOverpass(await r.json(),la,lo);
+      if(cands.length)return cands;
+    }catch(e){}
+  }
+  try{
+    const u="https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat="+la+"&lon="+lo+"&zoom=18&addressdetails=1&namedetails=1&accept-language=en";
+    const r=await savFetch(u,{headers:{Accept:"application/json"}},5000);
+    if(!r.ok)return[];
+    return savLmFromNominatim(await r.json(),la,lo);
+  }catch(e){return[]}
+}
+function savLmLabel(lm){
+  if(!lm||!lm.n)return"";
+  if(lm.kind==="street"||lm.kind==="area")return lm.n;
+  if(!(lm.d>=0.04))return lm.n;
+  return "ליד "+lm.n+" · "+kmTxt(lm.d);
+}
+function savLmSlim(x){return{n:x.n,la:x.la,lo:x.lo,d:x.d,kind:x.kind}}
+function savApplyLm(id,cands){
+  const a=savLoad(),s=a.find(x=>x.id===id);if(!s)return;
+  s.lmPending=0;s.lmTried=1;
+  if(cands&&cands.length){
+    s.lms=cands.slice(0,3).map(savLmSlim);
+    s.lm=s.lms[0];
+    if(s.auto!==0&&savIsDefaultName(s.n)){s.n=savLmLabel(s.lm);s.auto=1}
+  }
   savStore(a);savMarkers();savRender(true);
+}
+async function savResolve(id,la,lo){
+  const cands=await savLookup(la,lo);
+  savApplyLm(id,cands);
+}
+function savFillMissing(){
+  if(fs.savFilling||(typeof navigator!=="undefined"&&navigator.onLine===false))return;
+  const pending=savLoad().filter(s=>!s.lmTried&&!s.lmPending&&!s.lm);
+  if(!pending.length)return;
+  fs.savFilling=1;
+  (async()=>{
+    for(const s of pending){
+      const a=savLoad(),x=a.find(z=>z.id==s.id);if(!x||x.lmTried||x.lm)continue;
+      x.lmPending=1;savStore(a);savRender(true);
+      await savResolve(s.id,s.la,s.lo);
+    }
+    fs.savFilling=0;
+  })();
+}
+
+let savLast=0;
+function savAskAt(la,lo,prefix){
+  if(Date.now()-savLast<800)return;savLast=Date.now();
+  const id=Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+  const a=savLoad();
+  a.unshift({id,n:savNameDefault(prefix),la:+la,lo:+lo,t:Date.now(),auto:1,lmPending:1});
+  savStore(a);savMarkers();savRender(true);
+  savResolve(id,+la,+lo);
 }
 function savFromHere(){
   hereStart();
@@ -377,15 +533,48 @@ function savFromHere(){
 async function savRename(id){
   const a=savLoad(),s=a.find(x=>x.id==id);if(!s)return;
   const name=await savDlg("שם חדש",s.n);if(name==null||!name)return;
-  s.n=name;savStore(a);savMarkers();savRender(true);
+  s.n=name;s.auto=0;savStore(a);savMarkers();savRender(true);
 }
 function savDelete(id){
   const a=savLoad(),s=a.find(x=>x.id==id);if(!s)return;
   if(!confirm("למחוק את «"+s.n+"»?"))return;
   savStore(a.filter(x=>x.id!=id));savMarkers();savRender(true);
 }
+function savPick(id){
+  const a=savLoad(),s=a.find(x=>x.id==id);if(!s)return;
+  const go=()=>{
+    const cur=savLoad().find(x=>x.id==id);
+    if(!cur||!cur.lms||!cur.lms.length){if(!cur||cur.lmTried)alert("לא מצאתי מקום מוכר באזור");return}
+    const prev=$("#savdlg");if(prev)prev.remove();
+    const d=document.createElement("div");d.id="savdlg";
+    d.innerHTML=`<div class="savin"><h2>מקום מוכר באזור</h2><p class="sub">בחרו את השם שיופיע על הסימון.</p>`+
+      cur.lms.map((lm,i)=>`<button type="button" class="btn alt savpick" data-i="${i}">${esc(savLmLabel(lm))}</button>`).join("")+
+      `<div class="fbtns"><button type="button" class="btn alt" id="savcx">ביטול</button></div></div>`;
+    document.body.appendChild(d);
+    d.querySelectorAll(".savpick").forEach(b=>b.onclick=()=>{
+      const i=+b.dataset.i,all=savLoad(),x=all.find(z=>z.id==id);
+      d.remove();if(!x||!x.lms||!x.lms[i])return;
+      x.lm=x.lms[i];x.n=savLmLabel(x.lm);x.auto=0;
+      savStore(all);savMarkers();savRender(true);
+    });
+    $("#savcx").onclick=()=>d.remove();
+    d.addEventListener("click",e=>{if(e.target===d)d.remove()});
+  };
+  if(s.lms&&s.lms.length){go();return}
+  s.lmPending=1;savStore(a);savRender(true);
+  savResolve(s.id,s.la,s.lo).then(go);
+}
+function savLmSub(s){
+  if(s.lmPending)return `<span class="sub lmwip">מחפש מקום מוכר באזור…</span>`;
+  if(!s.lm)return"";
+  if(s.n&&s.n.indexOf(s.lm.n)>=0)return"";
+  const dist=s.lm.d>=0.04?" · "+kmTxt(s.lm.d):"";
+  return `<span class="sub lmline">ליד ${esc(s.lm.n)}${dist}</span>`;
+}
 function savPopup(s){
-  return `<div class="ppop"><b>⭐ ${esc(s.n)}</b><p class="sub">${savWhen(s.t)}</p><a class="btn" href="${savNav(s)}" target="_blank" rel="noopener">🧭 ניווט</a></div>`;
+  const lm=s.lm?`<p class="sub">${s.n&&s.n.indexOf(s.lm.n)>=0?esc(s.lm.n)+(s.lm.d>=0.04?" · "+kmTxt(s.lm.d):""):"ליד "+esc(s.lm.n)+(s.lm.d>=0.04?" · "+kmTxt(s.lm.d):"")}</p>`:s.lmPending?`<p class="sub lmwip">מחפש מקום מוכר באזור…</p>`:"";
+  const pick=s.lms&&s.lms.length>1?`<button type="button" class="btn alt" onclick="savPick('${s.id}')">בחירה אחרת</button>`:"";
+  return `<div class="ppop"><b>⭐ ${esc(s.n)}</b><p class="sub">${savWhen(s.t)}</p>${lm}<a class="btn" href="${savNav(s)}" target="_blank" rel="noopener">🧭 ניווט</a>${pick}</div>`;
 }
 function savMarkers(){
   if(!fs.map)return;
@@ -407,7 +596,7 @@ function savRender(force){
   el.dataset.ids=ids;
   const rows=a.length?a.map(s=>`<div class="frow savrow" data-sid="${s.id}">
     <span class="fav savico">⭐</span>
-    <div class="fi"><b>${esc(s.n)}</b><span class="sub">${savWhen(s.t)} · <span class="sdist">${savDist(s)}</span></span></div>
+    <div class="fi"><b>${esc(s.n)}</b><span class="sub">${savWhen(s.t)} · <span class="sdist">${savDist(s)}</span></span>${savLmSub(s)}${s.lms&&s.lms.length>1?`<button type="button" class="savelink" data-act="pick" data-id="${s.id}">בחירה אחרת</button>`:""}</div>
     <a class="ib" href="${savNav(s)}" target="_blank" rel="noopener" aria-label="ניווט">🧭</a>
     <button type="button" class="ib" data-act="ren" data-id="${s.id}" aria-label="שינוי שם">✏️</button>
     <button type="button" class="ib" data-act="del" data-id="${s.id}" aria-label="מחיקה">🗑️</button>
@@ -423,6 +612,7 @@ function savRender(force){
       if(act=="here")savFromHere();
       else if(act=="ren")savRename(b.dataset.id);
       else if(act=="del")savDelete(b.dataset.id);
+      else if(act=="pick")savPick(b.dataset.id);
     });
   }
 }
