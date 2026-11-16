@@ -140,5 +140,5 @@ const _info=V.info;V.hotelNav=()=>`<div class="box hotel"><h2>🏨 Hotel Residen
 V.pack=packView;
 const JOINED=famJoinFromHash();
 go(JOINED?"fam":location.hash.slice(1)||"info");
-famPill();if(!fs.me)famPicker();else famStart();
+famPill();if(!fs.me)famPicker();famStart();
 if("serviceWorker"in navigator)navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>r.update());

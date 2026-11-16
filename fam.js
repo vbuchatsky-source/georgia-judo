@@ -24,18 +24,39 @@ function famPicker(){if($("#who"))return;const d=document.createElement("div");d
 function famPill(){let p=$("#fampill");if(!p){p=document.createElement("button");p.id="fampill";document.querySelector("header").appendChild(p);p.onclick=()=>go("fam")}
   const on=fs.status=="on";p.className=on?"on":"";p.textContent=on?"📍 משתף מיקום":"מיקום כבוי"}
 // --- sharing ---
-function famStart(){famEnsure();if(!fs.me||!fs.room||document.hidden){famStop();return}
-  famListen();if(fs.paused||!navigator.geolocation){fs.status="off";famPill();return}
-  if(fs.watch==null)fs.watch=navigator.geolocation.watchPosition(famOnPos,e=>{fs.status="off";fs.err=e.code==1?"הגישה למיקום נחסמה – אפשר לאשר בהגדרות הדפדפן":"המיקום לא זמין כרגע";famPill();famRender()},{enableHighAccuracy:true,maximumAge:30e3,timeout:30e3})}
-function famStop(){if(fs.watch!=null){navigator.geolocation.clearWatch(fs.watch);fs.watch=null}if(fs.es){fs.es.close();fs.es=null}clearInterval(fs.poll);fs.poll=null;fs.status="off";famPill()}
-async function famOnPos(p){fs.err="";fs.status="on";famPill();const c=p.coords,o={n:fs.me,la:+c.latitude.toFixed(5),lo:+c.longitude.toFixed(5),a:Math.round(c.accuracy),t:Date.now()};
-  fs.mine=o;fs.pos[fs.me]=o;famRender();
-  const moved=fs.lastSentPos?hav(fs.lastSentPos.la,fs.lastSentPos.lo,o.la,o.lo)*1000:1e9,age=Date.now()-fs.lastSent;
-  if(Date.now()<fs.nextSend||age<FAM.sendEvery||(moved<15&&age<5*60e3))return;
-  fs.lastSent=Date.now();fs.lastSentPos=o;fs.nextSend=0;
-  try{const r=await fetch(FAM.api+encodeURIComponent(fs.room),{method:"POST",body:await famEnc(o),cache:"no-store"});
-    if(!r.ok){fs.err=r.status==429?"השרת עמוס כרגע, מנסה שוב בעוד כמה דקות":"לא הצלחתי לשלוח את המיקום (קוד "+r.status+")";fs.nextSend=Date.now()+(r.status==429?5*60e3:30e3);famRender()}}
-  catch(e){fs.nextSend=Date.now()+15e3}}
+function hereStart(){
+  if(!navigator.geolocation){fs.hereErr="המיקום לא זמין במכשיר הזה";famHereDraw();famRender();return}
+  if(fs.watch!=null)return;
+  fs.watch=navigator.geolocation.watchPosition(famOnPos,e=>{
+    fs.hereErr=e.code==1?"הגישה למיקום נחסמה – אפשר לאשר בהגדרות הדפדפן":"המיקום לא זמין כרגע";
+    if(!fs.paused)fs.status="off";
+    famPill();famHereDraw();famRender();
+  },{enableHighAccuracy:true,maximumAge:2e3,timeout:20e3});
+}
+function hereStop(){if(fs.watch!=null){navigator.geolocation.clearWatch(fs.watch);fs.watch=null}}
+function famStart(){famEnsure();if(document.hidden){famStop();return}
+  if(fs.me&&fs.room)famListen();
+  hereStart();
+  if(!fs.me||!fs.room||fs.paused){fs.status="off";famPill()}}
+function famStop(){hereStop();if(fs.es){fs.es.close();fs.es=null}clearInterval(fs.poll);fs.poll=null;fs.status="off";famPill()}
+async function famOnPos(p){
+  const c=p.coords;
+  fs.hereErr="";fs.here={la:c.latitude,lo:c.longitude,a:c.accuracy,t:Date.now()};
+  famHereDraw();
+  if(fs.herePendingCenter){fs.herePendingCenter=0;famCenterMe()}
+  if(fs.me&&!fs.paused){
+    fs.err="";fs.status="on";famPill();
+    const o={n:fs.me,la:+c.latitude.toFixed(5),lo:+c.longitude.toFixed(5),a:Math.round(c.accuracy),t:Date.now()};
+    fs.mine=o;fs.pos[fs.me]=o;
+    const moved=fs.lastSentPos?hav(fs.lastSentPos.la,fs.lastSentPos.lo,o.la,o.lo)*1000:1e9,age=Date.now()-fs.lastSent;
+    if(!(Date.now()<fs.nextSend||age<FAM.sendEvery||(moved<15&&age<5*60e3))){
+      fs.lastSent=Date.now();fs.lastSentPos=o;fs.nextSend=0;
+      try{const r=await fetch(FAM.api+encodeURIComponent(fs.room),{method:"POST",body:await famEnc(o),cache:"no-store"});
+        if(!r.ok){fs.err=r.status==429?"השרת עמוס כרגע, מנסה שוב בעוד כמה דקות":"לא הצלחתי לשלוח את המיקום (קוד "+r.status+")";fs.nextSend=Date.now()+(r.status==429?5*60e3:30e3)}}
+      catch(e){fs.nextSend=Date.now()+15e3}}
+  }
+  famRender();
+}
 async function famIngest(msg){const o=await famDec(msg);if(!o||!o.n||!isFinite(o.la))return;const cur=fs.pos[o.n];if(!cur||o.t>cur.t){fs.pos[o.n]=o;famRender()}}
 async function famPollOnce(){try{const r=await fetch(FAM.api+encodeURIComponent(fs.room)+"/json?poll=1&since=all&limit=50",{cache:"no-store"});if(!r.ok)return;const t=await r.text();
   for(const l of t.split("\n")){if(!l.trim())continue;try{const m=JSON.parse(l);if(m.event=="message")await famIngest(m.message)}catch(e){}}}catch(e){}}
@@ -53,26 +74,26 @@ function famView(){
   if(!fs.room)return `<div class="box fam"><h2>👨‍👩‍👦‍👦 איפה כולם</h2><p>טוען את קבוצת המשפחה…</p><button class="btn" id="fcreate">המשך</button></div>`;
   return `<div class="famtop"><div><b>👨‍👩‍👦‍👦 איפה כולם</b><span class="sub"> · אני: ${pOf(fs.me)[1]} ${fs.me||"?"}</span></div>
 <label class="tgl"><input type="checkbox" id="fshare" ${fs.paused?"":"checked"}><span></span> שיתוף</label></div>
-<div id="fmap"></div><div id="ferr"></div><div id="flist"></div>
+<div id="fmap"></div><div id="ferr"></div><div id="flist"></div><div id="slist"></div>
 <div class="fbtns"><button class="btn alt" id="finv">📨 הזמנת המשפחה</button><button class="btn alt" id="fwho">🔄 החלפת משתמש</button></div>
 <details class="more"><summary>ℹ️ מעקב גם כשהאפליקציה סגורה</summary><p>האפליקציה משתפת מיקום רק כשהיא פתוחה על המסך (מתעדכן בערך כל דקה). למעקב ברקע לאורך כל היום – שתפו מיקום ב־Google Maps (או ב־Find My באייפון).</p>
 <a class="btn alt" href="https://www.google.com/maps/@?share" target="_blank" rel="noopener">🗺️ שיתוף מיקום ב־Google Maps</a>
 <a class="btn alt" href="https://support.google.com/maps/answer/7326816?hl=iw" target="_blank" rel="noopener">❓ איך משתפים מיקום ב־Google Maps</a>
 <p class="sub">🔒 המיקומים מוצפנים בטלפון עם מפתח שנמצא רק בקישור ההזמנה, ונשמרים בשרת (ntfy.sh) עד 12 שעות. אל תשתפו את הקישור מחוץ למשפחה.</p></details>`}
 function famInit(){if(!fs.room){$("#fcreate").onclick=famCreate;return}
-  $("#fshare").onchange=e=>{localStorage.famPause=e.target.checked?"0":"1";if(fs.paused){if(fs.watch!=null){navigator.geolocation.clearWatch(fs.watch);fs.watch=null}fs.status="off";famPill()}else famStart();famRender()};
+  $("#fshare").onchange=e=>{localStorage.famPause=e.target.checked?"0":"1";if(fs.paused){fs.status="off";famPill()}else famStart();famRender()};
   $("#fwho").onclick=famPicker;
   $("#finv").onclick=async()=>{const u=famLink(),t="איפה כולם – פתחו את הקישור כדי לראות אחד את השני בטביליסי 🇬🇪\n"+u;
     if(navigator.share)try{await navigator.share({title:"איפה כולם",text:t});return}catch(e){if(e.name=="AbortError")return}
     location.href="https://wa.me/?text="+encodeURIComponent(t)};
-  fs.map=null;fs.mk={};fs.pin={};fs.ln={};fs.pm=null;fs.spreadHooked=0;fs.leg=null;fs.xctl=null;fs.rt=null;fs.popHooked=0;
+  fs.map=null;fs.mk={};fs.pin={};fs.ln={};fs.pm=null;fs.spreadHooked=0;fs.leg=null;fs.xctl=null;fs.hctl=null;fs.sctl=null;fs.rt=null;fs.popHooked=0;fs.hereMk=null;fs.hereAcc=null;fs.sm=null;fs.saveHooked=0;
   famLeaflet().then(()=>{if(!$("#fmap"))return;fs.map=L.map("fmap",{zoomControl:false,attributionControl:true}).setView([HOTEL.lat,HOTEL.lng],14);
     L.tileLayer("https://tile.openstreetmap.de/{z}/{x}/{y}.png",{maxZoom:21,maxNativeZoom:19,attribution:"© OpenStreetMap"}).addTo(fs.map);
     if(!fs.map.getPane("routes")){const pn=fs.map.createPane("routes");pn.style.zIndex=350;pn.style.pointerEvents="none"}
     L.marker([HOTEL.lat,HOTEL.lng],{icon:L.divIcon({className:"",html:`<div class="fmk" style="--c:#7a2e1d">🏨</div>`,iconSize:[36,36],iconAnchor:[18,18]}),zIndexOffset:50}).addTo(fs.map).bindTooltip("המלון");
     const cpop=`<div class="ppop"><b>🥋 מחנה האימונים</b><p class="sub" dir="ltr" style="text-align:right">${CAMP.e}</p><a class="btn" href="${typeof nav==="function"?nav(CAMP,"driving"):"https://www.google.com/maps/dir/?api=1&destination="+CAMP.lat+","+CAMP.lng+"&travelmode=driving"}" target="_blank" rel="noopener">🧭 ניווט</a></div>`;
     L.marker([CAMP.lat,CAMP.lng],{icon:L.divIcon({className:"",html:`<div class="fmk" style="--c:#1a5c3a">🥋</div>`,iconSize:[36,36],iconAnchor:[18,18]}),zIndexOffset:60}).addTo(fs.map).bindTooltip("🥋 מחנה האימונים",{permanent:true,direction:"bottom",offset:[0,16],className:"camp-tip",opacity:1}).bindPopup(cpop,{className:"fam-pop",closeButton:true,autoPan:true,maxWidth:240,minWidth:220,autoPanPadding:[16,56]});
-    famRouteLines();famPlaceMarkers();famAddExpand();famHookPopups();
+    famRouteLines();famPlaceMarkers();famAddExpand();famAddHereCtl();famHookPopups();famHookSaveMap();savMarkers();famHereDraw();
     fs.map.invalidateSize();fs.fit=true;famHookSpread();famRender()}).catch(()=>{$("#fmap").innerHTML=`<p class="sub" style="padding:20px;text-align:center">המפה לא נטענה (אין אינטרנט?)</p>`});
   famRender()}
 function famLeaflet(){if(window.L)return Promise.resolve();return new Promise((ok,no)=>{const c=document.createElement("link");c.rel="stylesheet";c.href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";document.head.appendChild(c);
@@ -108,8 +129,12 @@ function famHookSpread(){
 function famSpreadMarkers(){
   if(!fs.map)return;
   const items=[];
-  for(const[n,e,c]of FAM.people){const o=fs.pos[n];if(!o)continue;const pt=fs.map.latLngToLayerPoint(L.latLng(o.la,o.lo));items.push({n,c,la:o.la,lo:o.lo,x:pt.x,y:pt.y})}
+  for(const[n,e,c]of FAM.people){if(n==fs.me&&fs.here)continue;const o=fs.pos[n];if(!o)continue;const pt=fs.map.latLngToLayerPoint(L.latLng(o.la,o.lo));items.push({n,c,la:o.la,lo:o.lo,x:pt.x,y:pt.y})}
   const pos=famSpreadPts(items,FAM_MINPX);
+  if(fs.here){
+    const hp=fs.map.latLngToLayerPoint(L.latLng(fs.here.la,fs.here.lo)),minD=FAM_MINPX;
+    for(const it of items){const d=pos[it.n];if(!d)continue;const dx=d.x-hp.x,dy=d.y-hp.y,dist=Math.hypot(dx,dy)||0.01;if(dist<minD){const s=minD/dist;d.x=hp.x+dx*s;d.y=hp.y+dy*s}}
+  }
   if(!fs.pin)fs.pin={};if(!fs.ln)fs.ln={};
   for(const it of items){
     const d=pos[it.n],disp=fs.map.layerPointToLatLng(L.point(d.x,d.y));
@@ -178,18 +203,24 @@ function famPlaceMarkers(){
   }
   fs.map.on("zoomend",setLabs);setLabs();
 }
-function famRender(){const el=$("#flist");if(!el)return;$("#ferr").innerHTML=fs.err?`<p class="warn">${fs.err}</p>`:"";
-  const me=fs.mine;const rows=FAM.people.map(([n,e,c])=>{const o=fs.pos[n];
+function famRender(){const el=$("#flist");if(!el)return;
+  const errs=[fs.hereErr,fs.err].filter(Boolean);
+  $("#ferr").innerHTML=errs.map(x=>`<p class="warn">${x}</p>`).join("");
+  const me=fs.here||fs.mine;const rows=FAM.people.map(([n,e,c])=>{const o=n==fs.me&&fs.here?{la:fs.here.la,lo:fs.here.lo,t:fs.here.t}:fs.pos[n];
     if(!o)return `<div class="frow none"><span class="fav" style="--c:#bbb">${e}</span><div class="fi"><b>${n}</b><span class="sub">עוד לא שיתף מיקום</span></div></div>`;
     const stale=Date.now()-o.t>FAM.staleMin*60e3,isMe=n==fs.me,dh=hav(HOTEL.lat,HOTEL.lng,o.la,o.lo);
     const dm=me&&!isMe?" · ממני "+kmTxt(hav(me.la,me.lo,o.la,o.lo)):"";
     return `<div class="frow${stale?" stale":""}"><span class="fav" style="--c:${stale?"#aaa":c}">${e}</span><div class="fi"><b>${n}${isMe?" (אני)":""}</b><span class="sub">${ago(o.t)}${dm} · מהמלון ${kmTxt(dh)}</span></div>${isMe?"":`<a class="ib" href="https://www.google.com/maps/dir/?api=1&destination=${o.la},${o.lo}&travelmode=walking" target="_blank" rel="noopener" aria-label="נווט אליו">🧭</a>`}</div>`}).join("");
   el.innerHTML=`<div class="flist">${rows}</div>`;
-  if(fs.map){const pts=[[HOTEL.lat,HOTEL.lng],[CAMP.lat,CAMP.lng]];for(const[n,e,c]of FAM.people){const o=fs.pos[n];if(!o)continue;const stale=Date.now()-o.t>FAM.staleMin*60e3;
+  if(fs.map){const pts=[[HOTEL.lat,HOTEL.lng],[CAMP.lat,CAMP.lng]];for(const[n,e,c]of FAM.people){const o=fs.pos[n];if(!o)continue;
+      if(n==fs.me&&fs.here){if(fs.mk[n]){fs.mk[n].remove();delete fs.mk[n]}if(fs.pin[n]){fs.pin[n].remove();delete fs.pin[n]}if(fs.ln[n]){fs.ln[n].remove();delete fs.ln[n]}continue}
+      const stale=Date.now()-o.t>FAM.staleMin*60e3;
       const ic=L.divIcon({className:"",html:`<div class="fmk${stale?" stale":""}" style="--c:${c}">${e}</div>`,iconSize:[38,38],iconAnchor:[19,19]});
       if(fs.mk[n])fs.mk[n].setIcon(ic);else fs.mk[n]=L.marker([o.la,o.lo],{icon:ic,zIndexOffset:200}).addTo(fs.map).bindTooltip(n);pts.push([o.la,o.lo])}
+    if(fs.here)pts.push([fs.here.la,fs.here.lo]);
     if(fs.fit&&pts.length>1){fs.map.fitBounds(pts,{padding:[40,40],maxZoom:16});fs.fit=false}
-    famSpreadMarkers()}}
+    famHereDraw();famSpreadMarkers()}
+  savRender()}
 setInterval(()=>{if(location.hash=="#fam"&&!document.hidden)famRender()},30e3);
 const RTCOL={old:"#1a73e8",ctr:"#c62828",north:"#2f9e44",mtsk:"#8e24aa"};
 const RTLBL={old:"עיר עתיקה",ctr:"מרכז",north:"כרוניקה",mtsk:"מצחטה"};
@@ -255,4 +286,169 @@ function famAddExpand(){
   }});
   fs.xctl=new C();fs.map.addControl(fs.xctl);
   if(!fs.xesc){fs.xesc=e=>{if(e.key=="Escape")famToggleFull(false)};document.addEventListener("keydown",fs.xesc)}
+}
+
+function famHereDraw(){
+  if(!fs.map)return;
+  const h=fs.here;
+  if(!h||!isFinite(h.la)){
+    if(fs.hereMk){fs.hereMk.remove();fs.hereMk=null}
+    if(fs.hereAcc){fs.hereAcc.remove();fs.hereAcc=null}
+    return;
+  }
+  const ll=L.latLng(h.la,h.lo),acc=Math.max(h.a||0,8);
+  if(!fs.hereAcc)fs.hereAcc=L.circle(ll,{radius:acc,weight:1,color:"#1a73e8",opacity:.35,fillColor:"#1a73e8",fillOpacity:.14,interactive:false}).addTo(fs.map);
+  else fs.hereAcc.setLatLng(ll).setRadius(acc);
+  const ic=L.divIcon({className:"here-ico",html:'<div class="here-dot"><i></i></div>',iconSize:[22,22],iconAnchor:[11,11]});
+  if(!fs.hereMk)fs.hereMk=L.marker(ll,{icon:ic,zIndexOffset:400,interactive:false,keyboard:false}).addTo(fs.map);
+  else fs.hereMk.setLatLng(ll);
+}
+function famCenterMe(){
+  hereStart();
+  if(fs.here&&fs.map){fs.herePendingCenter=0;fs.map.setView([fs.here.la,fs.here.lo],Math.max(fs.map.getZoom(),17));return}
+  fs.herePendingCenter=1;
+  if(fs.hereErr)famRender();
+}
+function famAddHereCtl(){
+  if(!fs.map||fs.hctl)return;
+  const C=L.Control.extend({options:{position:"topright"},onAdd(){
+    const d=L.DomUtil.create("div","leaflet-bar fmap-here");
+    d.innerHTML=`<a class="fmap-herebtn" href="#" role="button" title="הצג אותי" aria-label="הצג אותי">📍</a>`;
+    L.DomEvent.disableClickPropagation(d);
+    d.querySelector("a").onclick=e=>{e.preventDefault();famCenterMe()};
+    return d;
+  }});
+  fs.hctl=new C();fs.map.addControl(fs.hctl);
+  if(fs.sctl)return;
+  const S=L.Control.extend({options:{position:"topright"},onAdd(){
+    const d=L.DomUtil.create("div","leaflet-bar fmap-sav");
+    d.innerHTML=`<a class="fmap-savbtn" href="#" role="button" title="סמן מקום" aria-label="סמן מקום">⭐</a>`;
+    L.DomEvent.disableClickPropagation(d);
+    d.querySelector("a").onclick=e=>{e.preventDefault();savFromHere()};
+    return d;
+  }});
+  fs.sctl=new S();fs.map.addControl(fs.sctl);
+}
+
+function savLoad(){try{const a=JSON.parse(localStorage.georgiaSaved||"[]");return Array.isArray(a)?a.filter(s=>s&&isFinite(s.la)&&isFinite(s.lo)):[]}catch(e){return[]}}
+function savStore(a){try{localStorage.georgiaSaved=JSON.stringify(a)}catch(e){}}
+function savNameDefault(prefix){
+  const d=new Date(),pad=n=>String(n).padStart(2,"0");
+  return `${prefix||"מקום"} ${d.getDate()}.${d.getMonth()+1} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+function savWhen(t){const d=new Date(t),pad=n=>String(n).padStart(2,"0");return `${d.getDate()}.${d.getMonth()+1} · ${pad(d.getHours())}:${pad(d.getMinutes())}`}
+function savDist(s){const h=fs.here||fs.mine;return h?"ממני "+kmTxt(hav(h.la,h.lo,s.la,s.lo)):"מחכה למיקום"}
+function savMode(s){const h=fs.here||fs.mine;return h&&hav(h.la,h.lo,s.la,s.lo)<=3?"walking":"driving"}
+function savNav(s){return "https://www.google.com/maps/dir/?api=1&destination="+s.la+","+s.lo+"&travelmode="+savMode(s)}
+function savDlg(title,val){
+  return new Promise(ok=>{
+    const prev=$("#savdlg");if(prev)prev.remove();
+    const d=document.createElement("div");d.id="savdlg";
+    d.innerHTML=`<div class="savin"><h2>${esc(title)}</h2><input id="savname" maxlength="80" dir="rtl" value="${esc(val)}"><div class="fbtns"><button type="button" class="btn" id="savok">שמירה</button><button type="button" class="btn alt" id="savcx">ביטול</button></div></div>`;
+    document.body.appendChild(d);
+    const inp=$("#savname");inp.focus();inp.select();
+    const done=v=>{d.remove();ok(v)};
+    $("#savok").onclick=()=>done(inp.value.trim());
+    $("#savcx").onclick=()=>done(null);
+    d.addEventListener("click",e=>{if(e.target===d)done(null)});
+    inp.onkeydown=e=>{if(e.key=="Enter"){e.preventDefault();done(inp.value.trim())}if(e.key=="Escape")done(null)};
+  });
+}
+let savLast=0;
+async function savAskAt(la,lo,prefix){
+  if(Date.now()-savLast<800)return;savLast=Date.now();
+  const name=await savDlg("שם למקום",savNameDefault(prefix));
+  if(name==null)return;
+  const a=savLoad();
+  a.unshift({id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),n:name||savNameDefault(prefix),la:+la,lo:+lo,t:Date.now()});
+  savStore(a);savMarkers();savRender(true);
+}
+function savFromHere(){
+  hereStart();
+  if(fs.here){savAskAt(fs.here.la,fs.here.lo,"מקום");return}
+  if(fs.hereErr){famRender();return}
+  if(fs.savWait)clearInterval(fs.savWait);
+  const started=Date.now();
+  fs.savWait=setInterval(()=>{
+    if(fs.here){clearInterval(fs.savWait);fs.savWait=null;savAskAt(fs.here.la,fs.here.lo,"מקום")}
+    else if(Date.now()-started>12e3){clearInterval(fs.savWait);fs.savWait=null;if(!fs.hereErr)fs.hereErr="לא הצלחתי לקבל מיקום. אפשר ללחוץ לחיצה ארוכה על המפה.";famRender()}
+  },300);
+}
+async function savRename(id){
+  const a=savLoad(),s=a.find(x=>x.id==id);if(!s)return;
+  const name=await savDlg("שם חדש",s.n);if(name==null||!name)return;
+  s.n=name;savStore(a);savMarkers();savRender(true);
+}
+function savDelete(id){
+  const a=savLoad(),s=a.find(x=>x.id==id);if(!s)return;
+  if(!confirm("למחוק את «"+s.n+"»?"))return;
+  savStore(a.filter(x=>x.id!=id));savMarkers();savRender(true);
+}
+function savPopup(s){
+  return `<div class="ppop"><b>⭐ ${esc(s.n)}</b><p class="sub">${savWhen(s.t)}</p><a class="btn" href="${savNav(s)}" target="_blank" rel="noopener">🧭 ניווט</a></div>`;
+}
+function savMarkers(){
+  if(!fs.map)return;
+  (fs.sm||[]).forEach(m=>m.remove());fs.sm=[];
+  for(const s of savLoad()){
+    const mk=L.marker([s.la,s.lo],{icon:L.divIcon({className:"pmid",html:`<div class="pmk fb savmk">⭐</div>`,iconSize:[32,32],iconAnchor:[16,16]}),zIndexOffset:-50,riseOnHover:true}).addTo(fs.map);
+    mk.bindTooltip(s.n,{permanent:true,direction:"bottom",offset:[0,6],className:"plab-tip",opacity:1});
+    mk.bindPopup(savPopup(s),{className:"fam-pop",closeButton:true,autoPan:true,maxWidth:240,minWidth:180,autoPanPadding:[16,56]});
+    fs.sm.push(mk);
+  }
+}
+function savRender(force){
+  const el=$("#slist");if(!el)return;
+  const a=savLoad(),ids=a.map(s=>s.id).join(",");
+  if(!force&&el.dataset.ids===ids&&el.querySelector(".slist")){
+    a.forEach(s=>{const d=el.querySelector(`[data-sid="${s.id}"] .sdist`);if(d)d.textContent=savDist(s)});
+    return;
+  }
+  el.dataset.ids=ids;
+  const rows=a.length?a.map(s=>`<div class="frow savrow" data-sid="${s.id}">
+    <span class="fav savico">⭐</span>
+    <div class="fi"><b>${esc(s.n)}</b><span class="sub">${savWhen(s.t)} · <span class="sdist">${savDist(s)}</span></span></div>
+    <a class="ib" href="${savNav(s)}" target="_blank" rel="noopener" aria-label="ניווט">🧭</a>
+    <button type="button" class="ib" data-act="ren" data-id="${s.id}" aria-label="שינוי שם">✏️</button>
+    <button type="button" class="ib" data-act="del" data-id="${s.id}" aria-label="מחיקה">🗑️</button>
+  </div>`).join(""):`<p class="sub savempty">עדיין אין מקומות שמורים. שמרו את המיקום הנוכחי, או לחצו לחיצה ארוכה על המפה.</p>`;
+  el.innerHTML=`<div class="slist"><h2>המקומות שלי</h2>
+    <button type="button" class="btn" data-act="here" id="savhere">⭐ סמן מקום</button>
+    ${rows}</div>`;
+  if(!el.dataset.bound){
+    el.dataset.bound="1";
+    el.addEventListener("click",e=>{
+      const b=e.target.closest("[data-act]");if(!b)return;
+      const act=b.dataset.act;
+      if(act=="here")savFromHere();
+      else if(act=="ren")savRename(b.dataset.id);
+      else if(act=="del")savDelete(b.dataset.id);
+    });
+  }
+}
+function famHookSaveMap(){
+  if(!fs.map||fs.saveHooked)return;fs.saveHooked=1;
+  fs.map.on("contextmenu",e=>{
+    if(e.originalEvent)e.originalEvent.preventDefault();
+    const t=e.originalEvent&&e.originalEvent.target;
+    if(t&&t.closest&&t.closest(".leaflet-control,.leaflet-popup,.rtleg"))return;
+    savAskAt(e.latlng.lat,e.latlng.lng,"נקודה");
+  });
+  const el=fs.map.getContainer();
+  let timer=null,start=null;
+  const clear=()=>{if(timer){clearTimeout(timer);timer=null}start=null};
+  el.addEventListener("touchstart",e=>{
+    if(e.touches.length!==1){clear();return}
+    const t=e.target;
+    if(t&&t.closest&&t.closest(".leaflet-control,.leaflet-popup,.rtleg"))return;
+    const p=e.touches[0];start={x:p.clientX,y:p.clientY};
+    timer=setTimeout(()=>{timer=null;if(!start||!fs.map)return;
+      const ll=fs.map.containerPointToLatLng(fs.map.mouseEventToContainerPoint({clientX:start.x,clientY:start.y}));
+      try{if(navigator.vibrate)navigator.vibrate(15)}catch(_){}
+      savAskAt(ll.lat,ll.lng,"נקודה");
+    },600);
+  },{passive:true});
+  el.addEventListener("touchmove",e=>{if(!start)return;const p=e.touches[0];if(Math.hypot(p.clientX-start.x,p.clientY-start.y)>14)clear()},{passive:true});
+  el.addEventListener("touchend",clear,{passive:true});
+  el.addEventListener("touchcancel",clear,{passive:true});
 }

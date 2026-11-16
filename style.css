@@ -146,3 +146,21 @@ body.fmap-on{overflow:hidden}
 .rtleg label:active{background:#0000000a}
 .rtleg input{margin:0;width:18px;height:18px;flex:none;accent-color:#a3001b}
 .rtleg i{width:18px;height:5px;border-radius:3px;flex:none;display:inline-block}
+
+.here-ico{background:none!important;border:0!important}
+.here-dot{width:22px;height:22px;position:relative}
+.here-dot:before{content:"";position:absolute;inset:0;border-radius:50%;background:#1a73e855;animation:herepulse 1.8s ease-out infinite}
+.here-dot i{position:absolute;left:50%;top:50%;width:14px;height:14px;margin:-7px 0 0 -7px;border-radius:50%;background:#1a73e8;border:2.5px solid #fff;box-shadow:0 1px 4px #0005;display:block}
+@keyframes herepulse{0%{transform:scale(.55);opacity:.8}100%{transform:scale(2.3);opacity:0}}
+.fmap-here a,.fmap-sav a{width:36px;height:36px;line-height:36px;font-size:18px;text-align:center;color:#1a1a1a;background:#fff;display:block;text-decoration:none}
+#slist .slist{background:#fff;border-radius:16px;margin:12px 0;box-shadow:0 1px 6px #0000000f;overflow:hidden;padding:0 0 8px}
+#slist h2{margin:0;padding:12px 14px 4px;font-size:19px}
+#slist .btn{width:auto;display:block;margin:8px 14px 10px;padding:12px}
+#slist .savempty{margin:0 14px 12px}
+#slist .frow{align-items:center}
+#slist .savico{border-color:#e0b44c;background:#fff8e8;font-size:20px}
+#slist button.ib{border:0;cursor:pointer;font-size:16px;padding:0;background:#f3ece3;color:inherit}
+#savdlg{position:fixed;inset:0;z-index:95;background:#0008;display:flex;align-items:center;justify-content:center;padding:20px}
+#savdlg .savin{width:100%;max-width:400px;background:#fff;border-radius:18px;padding:18px 16px;box-shadow:0 8px 30px #0004}
+#savdlg h2{margin:0 0 8px;font-size:20px}
+#savdlg .fbtns{margin-top:10px}
