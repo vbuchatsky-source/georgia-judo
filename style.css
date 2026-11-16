@@ -130,9 +130,18 @@ nav button,nav button.on{font-size:14px;padding:10px 2px;line-height:1.35}
 #fmap.fmap-full{position:fixed!important;inset:0;z-index:80;height:100%!important;width:100%!important;border-radius:0;box-shadow:none}
 body.fmap-on{overflow:hidden}
 .fmap-x a.fmap-xbtn{width:36px;height:36px;line-height:36px;font-size:18px;text-align:center;color:#1a1a1a;background:#fff;display:block;text-decoration:none}
-.rtleg{background:#fffc;backdrop-filter:blur(6px);border-radius:10px;padding:6px 8px;font-size:12px;box-shadow:0 1px 4px #0003;line-height:1.35;max-width:170px}
-.rtleg-h{font-weight:700;margin-bottom:3px;display:flex;gap:5px;align-items:center}
-.rtleg-h button{font:inherit;font-size:11px;font-weight:700;background:#fff;border:1px solid #ccc;border-radius:6px;padding:1px 6px;cursor:pointer}
-.rtleg label{display:flex;align-items:center;gap:6px;margin:2px 0;cursor:pointer}
-.rtleg input{margin:0}
-.rtleg i{width:14px;height:4px;border-radius:2px;flex:none;display:inline-block}
+#fmap .leaflet-control-container{direction:ltr}
+#fmap .leaflet-bottom.leaflet-left{left:0;right:auto}
+#fmap .leaflet-left .rtleg{margin-left:max(12px,env(safe-area-inset-left,0px));margin-right:0}
+#fmap .leaflet-bottom .rtleg{margin-bottom:max(12px,env(safe-area-inset-bottom,0px))}
+.rtleg{direction:rtl;background:#fffc;backdrop-filter:blur(8px);border-radius:12px;padding:4px;font-size:14px;line-height:1.3;box-shadow:0 1px 5px #0004;box-sizing:border-box;min-width:12.5em;max-width:min(230px,calc(100% - 24px));overflow:hidden;color:#1a1a1a}
+.rtleg-h{display:flex;align-items:center;gap:4px;padding:0 0 2px}
+.rtleg-tog{display:flex;align-items:center;justify-content:space-between;gap:6px;flex:1;min-width:0;font:inherit;font-weight:800;font-size:14px;background:none;border:0;padding:6px 8px;min-height:36px;cursor:pointer;color:inherit;border-radius:8px}
+.rtleg-tog .chev{font-size:12px;line-height:1;color:#5a4a3e}
+.rtleg.closed{min-width:0}
+.rtleg.closed .rtleg-b,.rtleg.closed .rtall,.rtleg.closed .rtnone{display:none}
+.rtleg-h .rtall,.rtleg-h .rtnone{font:inherit;font-size:13px;font-weight:700;background:#fff;border:1px solid #ccc;border-radius:8px;padding:5px 8px;min-height:32px;cursor:pointer;flex:none}
+.rtleg label{display:flex;align-items:center;gap:8px;margin:0;padding:5px 8px;min-height:36px;cursor:pointer;font-weight:700;white-space:nowrap;border-radius:8px}
+.rtleg label:active{background:#0000000a}
+.rtleg input{margin:0;width:18px;height:18px;flex:none;accent-color:#a3001b}
+.rtleg i{width:18px;height:5px;border-radius:3px;flex:none;display:inline-block}

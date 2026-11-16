@@ -210,17 +210,25 @@ function famRtApply(st){
   for(const[id,line]of Object.entries(fs.rt||{})){if(st[id]){if(!fs.map.hasLayer(line))line.addTo(fs.map)}else if(fs.map.hasLayer(line))fs.map.removeLayer(line)}
   document.querySelectorAll(".rtleg input[data-rt]").forEach(i=>{i.checked=!!st[i.dataset.rt]});
 }
+function famRtOpen(){try{return localStorage.georgiaRtOpen!="0"}catch(e){return true}}
+function famRtOpenSet(on){try{localStorage.georgiaRtOpen=on?"1":"0"}catch(e){}}
 function famRtLegend(){
   if(!fs.map||fs.leg)return;
   const C=L.Control.extend({options:{position:"bottomleft"},onAdd(){
     const d=L.DomUtil.create("div","rtleg");
+    d.setAttribute("dir","rtl");
     L.DomEvent.disableClickPropagation(d);L.DomEvent.disableScrollPropagation(d);
-    const st=famRtState();
-    d.innerHTML=`<div class="rtleg-h">מסלולים <button type="button" class="rtall">הכול</button> <button type="button" class="rtnone">הסתר</button></div>`+
-      (typeof ROUTES!=="undefined"?ROUTES:[]).map(r=>`<label><input type="checkbox" data-rt="${r.id}" ${st[r.id]?"checked":""}><i style="background:${RTCOL[r.id]}"></i>${RTLBL[r.id]||r.n}</label>`).join("");
+    const st=famRtState(),open=famRtOpen();
+    d.classList.toggle("closed",!open);
+    d.innerHTML=`<div class="rtleg-h"><button type="button" class="rtleg-tog" aria-expanded="${open?"true":"false"}" aria-label="מסלולים">מסלולים <span class="chev">${open?"▴":"▾"}</span></button>`+
+      `<button type="button" class="rtall">הכול</button><button type="button" class="rtnone">הסתר</button></div>`+
+      `<div class="rtleg-b">`+
+      (typeof ROUTES!=="undefined"?ROUTES:[]).map(r=>`<label><input type="checkbox" data-rt="${r.id}" ${st[r.id]?"checked":""}><i style="background:${RTCOL[r.id]}"></i>${RTLBL[r.id]||r.n}</label>`).join("")+`</div>`;
     d.querySelectorAll("input").forEach(inp=>{inp.onchange=()=>{const s=famRtState();s[inp.dataset.rt]=inp.checked?1:0;famRtApply(s)}});
     d.querySelector(".rtall").onclick=()=>famRtApply({old:1,ctr:1,north:1,mtsk:1});
     d.querySelector(".rtnone").onclick=()=>famRtApply({old:0,ctr:0,north:0,mtsk:0});
+    const tog=d.querySelector(".rtleg-tog");
+    tog.onclick=()=>{const on=d.classList.contains("closed");d.classList.toggle("closed",!on);tog.setAttribute("aria-expanded",on?"true":"false");tog.querySelector(".chev").textContent=on?"▴":"▾";famRtOpenSet(on)};
     return d;
   }});
   fs.leg=new C();fs.map.addControl(fs.leg);
