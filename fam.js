@@ -65,10 +65,11 @@ function famInit(){if(!fs.room){$("#fcreate").onclick=famCreate;return}
   $("#finv").onclick=async()=>{const u=famLink(),t="איפה כולם – פתחו את הקישור כדי לראות אחד את השני בטביליסי 🇬🇪\n"+u;
     if(navigator.share)try{await navigator.share({title:"איפה כולם",text:t});return}catch(e){if(e.name=="AbortError")return}
     location.href="https://wa.me/?text="+encodeURIComponent(t)};
-  fs.map=null;fs.mk={};fs.pin={};fs.ln={};fs.spreadHooked=0;
+  fs.map=null;fs.mk={};fs.pin={};fs.ln={};fs.pm=null;fs.spreadHooked=0;
   famLeaflet().then(()=>{if(!$("#fmap"))return;fs.map=L.map("fmap",{zoomControl:false,attributionControl:true}).setView([HOTEL.lat,HOTEL.lng],14);
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:21,maxNativeZoom:19,attribution:"© OpenStreetMap"}).addTo(fs.map);
-    L.marker([HOTEL.lat,HOTEL.lng],{icon:L.divIcon({className:"",html:`<div class="fmk" style="--c:#7a2e1d">🏨</div>`,iconSize:[36,36],iconAnchor:[18,18]})}).addTo(fs.map).bindTooltip("המלון");
+    L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",{maxZoom:21,maxNativeZoom:20,subdomains:"abcd",attribution:"© OpenStreetMap © CARTO"}).addTo(fs.map);
+    L.marker([HOTEL.lat,HOTEL.lng],{icon:L.divIcon({className:"",html:`<div class="fmk" style="--c:#7a2e1d">🏨</div>`,iconSize:[36,36],iconAnchor:[18,18]}),zIndexOffset:50}).addTo(fs.map).bindTooltip("המלון");
+    famPlaceMarkers();
     fs.map.invalidateSize();fs.fit=true;famHookSpread();famRender()}).catch(()=>{$("#fmap").innerHTML=`<p class="sub" style="padding:20px;text-align:center">המפה לא נטענה (אין אינטרנט?)</p>`});
   famRender()}
 function famLeaflet(){if(window.L)return Promise.resolve();return new Promise((ok,no)=>{const c=document.createElement("link");c.rel="stylesheet";c.href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";document.head.appendChild(c);
@@ -122,6 +123,31 @@ function famSpreadMarkers(){
       if(fs.ln[it.n]){fs.ln[it.n].remove();delete fs.ln[it.n]}
     }
   }
+}
+
+function famVisitPlaces(){
+  const seen=new Set(),out=[];
+  const add=(p,i)=>{if(!p||!isFinite(p.lat)||!isFinite(p.lng)||seen.has(i))return;seen.add(i);out.push({p,i})};
+  if(typeof ROUTES!=="undefined")for(const r of ROUTES)for(const s of r.stops||[])add(PLACES[s.i],s.i);
+  if(typeof PLACES!=="undefined")PLACES.forEach((p,i)=>{if(p.want||p.w)add(p,i)});
+  return out;
+}
+function famPlaceMarkers(){
+  if(!fs.map||fs.pm)return;
+  fs.pm=[];
+  const setLabs=()=>{const on=fs.map.getZoom()>=15;const el=$("#fmap");if(el)el.classList.toggle("hi-z",on)};
+  for(const{p,i}of famVisitPlaces()){
+    const ph=typeof photosOf=="function"?photosOf(i):[];
+    const src=ph[0]&&ph[0][0],ico=p.k=="r"?"🍽️":"📍",name=typeof esc=="function"?esc(p.n):p.n;
+    const html=src?`<div class="pmk"><img src="${src}" alt=""></div>`:`<div class="pmk fb">${ico}</div>`;
+    const mk=L.marker([p.lat,p.lng],{icon:L.divIcon({className:"pmid",html,iconSize:[32,32],iconAnchor:[16,16]}),zIndexOffset:-100,riseOnHover:true}).addTo(fs.map);
+    mk.bindTooltip(p.n,{permanent:true,direction:"bottom",offset:[0,6],className:"plab-tip",opacity:1});
+    const href=typeof nav=="function"?nav(p):"https://www.google.com/maps/dir/?api=1&destination="+p.lat+","+p.lng;
+    const sub=p.e?`<div class="sub" dir="ltr">${typeof esc=="function"?esc(p.e):p.e}</div>`:"";
+    mk.bindPopup(`<div class="ppop"><b>${name}</b>${sub}<a class="btn" href="${href}" target="_blank" rel="noopener">🧭 ניווט</a></div>`,{className:"fam-pop",closeButton:true,autoPan:true});
+    fs.pm.push(mk);
+  }
+  fs.map.on("zoomend",setLabs);setLabs();
 }
 function famRender(){const el=$("#flist");if(!el)return;$("#ferr").innerHTML=fs.err?`<p class="warn">${fs.err}</p>`:"";
   const me=fs.mine;const rows=FAM.people.map(([n,e,c])=>{const o=fs.pos[n];
