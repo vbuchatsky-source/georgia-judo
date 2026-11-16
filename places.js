@@ -1,6 +1,7 @@
 // Places saved from the TikTok videos vitaly sent. Coordinates are from OpenStreetMap/Nominatim or the venue's listings; distances are approximate.
 const S1="https://vt.tiktok.com/ZSphKBBVd/",S2="https://vt.tiktok.com/ZSphKn6TE/",S3="https://vt.tiktok.com/ZSphK3yQa/";
 const HOTEL={n:"Hotel Residence Plaza",lat:41.692288,lng:44.833153};
+const CAMP={n:"מחנה האימונים",e:'Judo Club Georgia · 144a Monk Gabriel Salos Ave',ge:'ძიუდოს კლუბი „ჯორჯია“ · ბერი გაბრიელ სალოსის გამზირი 144ა',q:"Judo Club Georgia, 144a Monk Gabriel Salos Avenue, Tbilisi",lat:41.671948,lng:44.871286,km:5.9,min:10,tel:"+995 599 93 38 97"};
 const PLACES=[
 {n:"גשר השלום",e:"Bridge of Peace",k:"a",d:"גשר הולכי רגל מזכוכית ופלדה מעל נהר המטקווארי, בין העיר העתיקה לפארק ריקה.",lat:41.69298,lng:44.80806,q:"Bridge of Peace, Tbilisi",s:[S1]},
 {n:"פארק ריקה",e:"Rike Park",k:"a",d:"פארק על גדת הנהר, בצמוד לגשר השלום ולתחנת הרכבל.",lat:41.69320,lng:44.80999,q:"Rike Park, Tbilisi",s:[S1]},

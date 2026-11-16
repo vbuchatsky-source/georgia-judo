@@ -2,7 +2,7 @@ const $=s=>document.querySelector(s),T="<span class='todo'>למלא</span>";
 const TABS=[["info","🇬🇪","גאורגיה"],["trip","🧳","טיול"],["fam","👨‍👩‍👦‍👦","איפה כולם"],["fly","✈️","טיסות"],["routes","🗺️","מסלול"]];
 const tel=(n,l)=>`<a class="btn" href="tel:${n.replace(/[^+\d*]/g,'')}">📞 ${l||n}</a>`;
 const V={
-trip:()=>`<div class="box"><h2>הטיול</h2><p>✈️ <b>16.11.2026</b> → 🏠 <b>22.11.2026</b> (7 ימים)</p><p>👨‍👩‍👦‍👦 ויטאלי, יעל (יוליה), אדם (2014), טום (2015)</p><p>🥋 מחנה אימונים בג'ודו – ${T}</p><p id="cd"></p></div>
+trip:()=>`<div class="box"><h2>הטיול</h2><p>✈️ <b>16.11.2026</b> → 🏠 <b>22.11.2026</b> (7 ימים)</p><p>👨‍👩‍👦‍👦 ויטאלי, יעל (יוליה), אדם (2014), טום (2015)</p><p>🥋 מחנה אימונים בג'ודו – Judo Club Georgia</p><p id="cd"></p></div>
 <div class="box"><h2>✅ רשימת ציוד</h2><button class="btn" onclick="go('pack')">לרשימה</button></div>
 <div class="box hotel"><h2>🏨 מלון · Hotel Residence Plaza</h2><p>כתובת: 19 Gujareti St, Tbilisi 0144, Georgia<br>📍 טביליסי · לינה לכל המשפחה</p>
 <a class="btn" href="https://share.google/c8NfljzoHhfhLHZFu" target="_blank" rel="noopener">🗺️ Google Maps</a>
@@ -14,9 +14,9 @@ flySec:()=>`<div class="box bpbox"><button type="button" class="btn bpbtn" id="b
 <div class="ok">✅ צ'ק-אין בוצע<br>🚪 פתיחת שער 04:25 · סגירת שער 05:00 · מספר השער טרם פורסם<br>🚕 מונית ב-1:50, הגעה משוערת ~2:20<br>כרטיסי העלייה בכפתור למעלה, עם אותו קוד כמו הדרכונים.</div></div>
 <div class="box"><h2>חזור – א' 22.11.2026</h2><p><b>LY5118</b> · מופעל ע"י KlasJet עבור סאן דור<br>🛫 12:05 טביליסי (TBS)<br>🛬 12:45 נתב"ג, <b>טרמינל 3</b> – שעון ישראל<br>⏱️ 2:40 שעות<br>💺 ויטאלי 10F · אדם 10E · יעל (יוליה) 09F · טום 09E</p></div>
 <div class="box"><h2>🧳 כבודה (Lite)</h2><p>לכל נוסע: תיק אישי מתחת למושב + טרולי עד 8 ק"ג (נשלח לבטן המטוס ללא עלות). <b>מזוודה לבטן לא כלולה (0PC)</b> – אם צריך לציוד ג'ודו, להוסיף מראש באתר (זול יותר מבשדה).</p><p class="sub">מקור: אישורי הזמנה של אל על, 29.9.2026. ההלוך יוצא מטרמינל 1 והחזרה נוחתת בטרמינל 3.</p></div>`,
-judoSec:()=>`<div class="box"><h2>🥋 מחנה האימונים</h2><p>שם המחנה / מועדון: ${T}<br>עיר ומקום לינה: טביליסי · <b>Hotel Residence Plaza</b><br>כתובת: 19 Gujareti St, Tbilisi 0144<br>איש קשר + טלפון: ${T}<br>לוח אימונים: ${T}<br>הסעה משדה התעופה: ${T}</p>
-<a class="btn" href="https://www.google.com/maps/dir/?api=1&destination=41.692288,44.833153" target="_blank" rel="noopener">🧭 ניווט למלון</a>
-<a class="btn alt" href="https://residenceplaza.ge/" target="_blank" rel="noopener">🌐 residenceplaza.ge</a></div>`,
+judoSec:()=>`<div class="box"><h2>🥋 מחנה האימונים</h2><p>שם: <b>Judo Club Georgia</b> (ძიუდოს კლუბი „ჯორჯია“)<br>עיר ומקום לינה: טביליסי · <b>Hotel Residence Plaza</b><br>כתובת האולם: 144a Monk Gabriel Salos Ave, Tbilisi 0144<br><span class="sub" dir="ltr" style="text-align:right">ბერი გაბრიელ სალოსის გამზირი 144ა</span><br>🚕 ~${CAMP.km} ק"מ · ~${CAMP.min} דק׳ מונית מהמלון<br>איש קשר: ${T}<br>לוח אימונים: ${T}<br>הסעה משדה התעופה: ${T}</p>
+<a class="btn" href="${nav(CAMP,"driving")}" target="_blank" rel="noopener">🧭 ניווט למחנה</a>
+<a class="btn alt" href="tel:${CAMP.tel.replace(/[^+\d]/g,"")}">📞 ${CAMP.tel}</a></div>`,
 ins:()=>`<div class="box"><h2>🛡️ ביטוח נסיעות – הפניקס SMART TRAVEL</h2><p>פוליסה: <span class="code">26/096/667/8762601</span><br>תקופה: 16/11/2026–22/11/2026 · יעד: גאורגיה<br>מחיר כולל: 150$ (תשלום אחד)<br>מבוטחים: ויטאלי, יעל, אדם, טום בוצ'אצקי</p>
 <p><b>לכל הארבעה:</b> פוליסת בסיס, חבות כלפי צד ג', איתור וחילוץ, ביטול וקיצור נסיעה, מגן קורונה, כבודה, הוצאות רפואיות בישראל לאחר תאונה בחו"ל.<br>💻 ויטאלי: גניבת מחשב נייד (Lenovo Legion 5 16IRX9, 83DG).<br>🥋 אדם וטום: <b>ספורט תחרותי</b> 16–22/11 – כולל במפורש ג'ודו ומחנה אימונים בחו"ל (הגדרה 1.43).</p></div>
 <div class="box" style="background:#e8f6ea"><h2>✈️ ביטול נסיעה (פרק 10)</h2><p>סעיף משפחה גרעינית: אם אחד זכאי לביטול – כולם זכאים.<br><b>אירועים בתוך 7 ימים לפני היציאה:</b><br>• אשפוז של 24 שעות לפחות<br>• ביקור במיון/מוקד דחוף + אבחנת רופא למנוחה בבית שכוללת את יום הטיסה<br>• ניתוח או מצב חמור אחר שהתגלה לראשונה<br>• פטירה של מבוטח או קרוב משפחה<br>• נזק לבית או פריצה – בתוך 14 יום<br>פציעה נחשבת מחלה (הגדרה 1.14).<br>💲 עד 6,000$ לאדם, כרטיסי טיסה עד 2,000$, ללא השתתפות עצמית.</p>

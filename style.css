@@ -115,6 +115,7 @@ nav button,nav button.on{font-size:14px;padding:10px 2px;line-height:1.35}
 .pmk.fb{display:flex;align-items:center;justify-content:center;font-size:16px}
 .plab-tip{display:none;font-weight:700;font-size:11px;color:#3a2a20;background:#fffc;border:0;border-radius:8px;box-shadow:0 1px 3px #0003;padding:1px 6px;white-space:nowrap;max-width:120px;overflow:hidden;text-overflow:ellipsis}
 #fmap:not(.hi-z) .plab-tip{display:none!important}#fmap.hi-z .plab-tip{display:block}
+.camp-tip{font-weight:700;font-size:11px;color:#1a5c3a;background:#fffc;border:0;border-radius:8px;box-shadow:0 1px 3px #0003;padding:1px 6px;white-space:nowrap}
 .fam-pop .leaflet-popup-content{margin:8px 8px 10px;width:auto!important;min-width:0}
 .fam-pop .leaflet-popup-content-wrapper{border-radius:14px}
 .ppop{max-width:220px;text-align:center}

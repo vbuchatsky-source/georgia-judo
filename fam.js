@@ -70,6 +70,8 @@ function famInit(){if(!fs.room){$("#fcreate").onclick=famCreate;return}
     L.tileLayer("https://tile.openstreetmap.de/{z}/{x}/{y}.png",{maxZoom:21,maxNativeZoom:19,attribution:"© OpenStreetMap"}).addTo(fs.map);
     if(!fs.map.getPane("routes")){const pn=fs.map.createPane("routes");pn.style.zIndex=350;pn.style.pointerEvents="none"}
     L.marker([HOTEL.lat,HOTEL.lng],{icon:L.divIcon({className:"",html:`<div class="fmk" style="--c:#7a2e1d">🏨</div>`,iconSize:[36,36],iconAnchor:[18,18]}),zIndexOffset:50}).addTo(fs.map).bindTooltip("המלון");
+    const cpop=`<div class="ppop"><b>🥋 מחנה האימונים</b><p class="sub" dir="ltr" style="text-align:right">${CAMP.e}</p><a class="btn" href="${typeof nav==="function"?nav(CAMP,"driving"):"https://www.google.com/maps/dir/?api=1&destination="+CAMP.lat+","+CAMP.lng+"&travelmode=driving"}" target="_blank" rel="noopener">🧭 ניווט</a></div>`;
+    L.marker([CAMP.lat,CAMP.lng],{icon:L.divIcon({className:"",html:`<div class="fmk" style="--c:#1a5c3a">🥋</div>`,iconSize:[36,36],iconAnchor:[18,18]}),zIndexOffset:60}).addTo(fs.map).bindTooltip("🥋 מחנה האימונים",{permanent:true,direction:"bottom",offset:[0,16],className:"camp-tip",opacity:1}).bindPopup(cpop,{className:"fam-pop",closeButton:true,autoPan:true,maxWidth:240,minWidth:220,autoPanPadding:[16,56]});
     famRouteLines();famPlaceMarkers();famAddExpand();famHookPopups();
     fs.map.invalidateSize();fs.fit=true;famHookSpread();famRender()}).catch(()=>{$("#fmap").innerHTML=`<p class="sub" style="padding:20px;text-align:center">המפה לא נטענה (אין אינטרנט?)</p>`});
   famRender()}
@@ -183,7 +185,7 @@ function famRender(){const el=$("#flist");if(!el)return;$("#ferr").innerHTML=fs.
     const dm=me&&!isMe?" · ממני "+kmTxt(hav(me.la,me.lo,o.la,o.lo)):"";
     return `<div class="frow${stale?" stale":""}"><span class="fav" style="--c:${stale?"#aaa":c}">${e}</span><div class="fi"><b>${n}${isMe?" (אני)":""}</b><span class="sub">${ago(o.t)}${dm} · מהמלון ${kmTxt(dh)}</span></div>${isMe?"":`<a class="ib" href="https://www.google.com/maps/dir/?api=1&destination=${o.la},${o.lo}&travelmode=walking" target="_blank" rel="noopener" aria-label="נווט אליו">🧭</a>`}</div>`}).join("");
   el.innerHTML=`<div class="flist">${rows}</div>`;
-  if(fs.map){const pts=[[HOTEL.lat,HOTEL.lng]];for(const[n,e,c]of FAM.people){const o=fs.pos[n];if(!o)continue;const stale=Date.now()-o.t>FAM.staleMin*60e3;
+  if(fs.map){const pts=[[HOTEL.lat,HOTEL.lng],[CAMP.lat,CAMP.lng]];for(const[n,e,c]of FAM.people){const o=fs.pos[n];if(!o)continue;const stale=Date.now()-o.t>FAM.staleMin*60e3;
       const ic=L.divIcon({className:"",html:`<div class="fmk${stale?" stale":""}" style="--c:${c}">${e}</div>`,iconSize:[38,38],iconAnchor:[19,19]});
       if(fs.mk[n])fs.mk[n].setIcon(ic);else fs.mk[n]=L.marker([o.la,o.lo],{icon:ic,zIndexOffset:200}).addTo(fs.map).bindTooltip(n);pts.push([o.la,o.lo])}
     if(fs.fit&&pts.length>1){fs.map.fitBounds(pts,{padding:[40,40],maxZoom:16});fs.fit=false}
