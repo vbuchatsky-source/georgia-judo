@@ -65,11 +65,12 @@ function famInit(){if(!fs.room){$("#fcreate").onclick=famCreate;return}
   $("#finv").onclick=async()=>{const u=famLink(),t="איפה כולם – פתחו את הקישור כדי לראות אחד את השני בטביליסי 🇬🇪\n"+u;
     if(navigator.share)try{await navigator.share({title:"איפה כולם",text:t});return}catch(e){if(e.name=="AbortError")return}
     location.href="https://wa.me/?text="+encodeURIComponent(t)};
-  fs.map=null;fs.mk={};fs.pin={};fs.ln={};fs.pm=null;fs.spreadHooked=0;
+  fs.map=null;fs.mk={};fs.pin={};fs.ln={};fs.pm=null;fs.spreadHooked=0;fs.leg=null;fs.xctl=null;fs.rt=null;fs.popHooked=0;
   famLeaflet().then(()=>{if(!$("#fmap"))return;fs.map=L.map("fmap",{zoomControl:false,attributionControl:true}).setView([HOTEL.lat,HOTEL.lng],14);
     L.tileLayer("https://tile.openstreetmap.de/{z}/{x}/{y}.png",{maxZoom:21,maxNativeZoom:19,attribution:"© OpenStreetMap"}).addTo(fs.map);
+    if(!fs.map.getPane("routes")){const pn=fs.map.createPane("routes");pn.style.zIndex=350;pn.style.pointerEvents="none"}
     L.marker([HOTEL.lat,HOTEL.lng],{icon:L.divIcon({className:"",html:`<div class="fmk" style="--c:#7a2e1d">🏨</div>`,iconSize:[36,36],iconAnchor:[18,18]}),zIndexOffset:50}).addTo(fs.map).bindTooltip("המלון");
-    famPlaceMarkers();
+    famRouteLines();famPlaceMarkers();famAddExpand();famHookPopups();
     fs.map.invalidateSize();fs.fit=true;famHookSpread();famRender()}).catch(()=>{$("#fmap").innerHTML=`<p class="sub" style="padding:20px;text-align:center">המפה לא נטענה (אין אינטרנט?)</p>`});
   famRender()}
 function famLeaflet(){if(window.L)return Promise.resolve();return new Promise((ok,no)=>{const c=document.createElement("link");c.rel="stylesheet";c.href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";document.head.appendChild(c);
@@ -132,19 +133,45 @@ function famVisitPlaces(){
   if(typeof PLACES!=="undefined")PLACES.forEach((p,i)=>{if(p.want||p.w)add(p,i)});
   return out;
 }
+function famPlacePopup(p,i){
+  const ph=typeof photosOf=="function"?photosOf(i):[];
+  const name=typeof esc=="function"?esc(p.n):p.n;
+  let gal="";
+  if(ph.length){
+    const imgs=ph.map(x=>`<img src="${x[0]}" alt="" draggable="false">`).join("");
+    const dots=ph.length>1?`<div class="pgdots">${ph.map((_,k)=>`<i class="${k?"":"on"}"></i>`).join("")}</div>`:"";
+    gal=`<div class="pgal" dir="ltr" data-n="${ph.length}"><div class="pgtrack">${imgs}</div>${dots}</div>`;
+  }
+  const href=typeof nav=="function"?nav(p):"https://www.google.com/maps/dir/?api=1&destination="+p.lat+","+p.lng;
+  return `<div class="ppop">${gal}<b>${name}</b><a class="btn" href="${href}" target="_blank" rel="noopener">🧭 ניווט</a></div>`;
+}
+function famHookPopups(){
+  if(!fs.map||fs.popHooked)return;fs.popHooked=1;
+  fs.map.on("popupopen",e=>{
+    const g=e.popup.getElement()&&e.popup.getElement().querySelector(".pgal");
+    if(!g)return;
+    const track=g.querySelector(".pgtrack"),dots=[...g.querySelectorAll(".pgdots i")];
+    const sync=()=>{const w=track.clientWidth||1,k=Math.round(track.scrollLeft/w);dots.forEach((d,i)=>d.classList.toggle("on",i===k))};
+    track.addEventListener("scroll",sync,{passive:true});
+    L.DomEvent.disableClickPropagation(g);
+    L.DomEvent.on(g,"touchstart",L.DomEvent.stopPropagation);
+    L.DomEvent.on(g,"touchmove",L.DomEvent.stopPropagation);
+    L.DomEvent.on(g,"wheel",L.DomEvent.stopPropagation);
+    [...track.querySelectorAll("img")].forEach(im=>im.onload=()=>e.popup.update());
+    setTimeout(()=>e.popup.update(),50);
+  });
+}
 function famPlaceMarkers(){
   if(!fs.map||fs.pm)return;
   fs.pm=[];
   const setLabs=()=>{const on=fs.map.getZoom()>=15;const el=$("#fmap");if(el)el.classList.toggle("hi-z",on)};
   for(const{p,i}of famVisitPlaces()){
     const ph=typeof photosOf=="function"?photosOf(i):[];
-    const src=ph[0]&&ph[0][0],ico=p.k=="r"?"🍽️":"📍",name=typeof esc=="function"?esc(p.n):p.n;
+    const src=ph[0]&&ph[0][0],ico=p.k=="r"?"🍽️":"📍";
     const html=src?`<div class="pmk"><img src="${src}" alt=""></div>`:`<div class="pmk fb">${ico}</div>`;
     const mk=L.marker([p.lat,p.lng],{icon:L.divIcon({className:"pmid",html,iconSize:[32,32],iconAnchor:[16,16]}),zIndexOffset:-100,riseOnHover:true}).addTo(fs.map);
     mk.bindTooltip(p.n,{permanent:true,direction:"bottom",offset:[0,6],className:"plab-tip",opacity:1});
-    const href=typeof nav=="function"?nav(p):"https://www.google.com/maps/dir/?api=1&destination="+p.lat+","+p.lng;
-    const sub=p.e?`<div class="sub" dir="ltr">${typeof esc=="function"?esc(p.e):p.e}</div>`:"";
-    mk.bindPopup(`<div class="ppop"><b>${name}</b>${sub}<a class="btn" href="${href}" target="_blank" rel="noopener">🧭 ניווט</a></div>`,{className:"fam-pop",closeButton:true,autoPan:true});
+    mk.bindPopup(famPlacePopup(p,i),{className:"fam-pop",closeButton:true,autoPan:true,maxWidth:240,minWidth:220,autoPanPadding:[16,56]});
     fs.pm.push(mk);
   }
   fs.map.on("zoomend",setLabs);setLabs();
@@ -162,3 +189,60 @@ function famRender(){const el=$("#flist");if(!el)return;$("#ferr").innerHTML=fs.
     if(fs.fit&&pts.length>1){fs.map.fitBounds(pts,{padding:[40,40],maxZoom:16});fs.fit=false}
     famSpreadMarkers()}}
 setInterval(()=>{if(location.hash=="#fam"&&!document.hidden)famRender()},30e3);
+const RTCOL={old:"#1a73e8",ctr:"#c62828",north:"#2f9e44",mtsk:"#8e24aa"};
+const RTLBL={old:"עיר עתיקה",ctr:"מרכז",north:"כרוניקה",mtsk:"מצחטה"};
+function famRtLoad(){try{return JSON.parse(localStorage.georgiaRt||"")}catch(e){return null}}
+function famRtSave(st){try{localStorage.georgiaRt=JSON.stringify(st)}catch(e){}}
+function famRtState(){const d={old:1,ctr:1,north:1,mtsk:1},s=famRtLoad();if(s&&typeof s=="object")for(const k of Object.keys(d))if(k in s)d[k]=s[k]?1:0;return d}
+function famRoutePts(r){return[[HOTEL.lat,HOTEL.lng],...r.stops.map(s=>[PLACES[s.i].lat,PLACES[s.i].lng]),[HOTEL.lat,HOTEL.lng]]}
+function famRouteLines(){
+  if(!fs.map)return;fs.rt={};
+  const st=famRtState();
+  for(const r of (typeof ROUTES!=="undefined"?ROUTES:[])){
+    const geo=typeof ROUTEGEO!=="undefined"&&ROUTEGEO[r.id],latlngs=geo&&geo.length?geo:famRoutePts(r);
+    const line=L.polyline(latlngs,{color:RTCOL[r.id]||"#555",weight:4,opacity:.8,pane:"routes",interactive:false,lineJoin:"round",lineCap:"round"});
+    fs.rt[r.id]=line;if(st[r.id])line.addTo(fs.map);
+  }
+  famRtLegend();
+}
+function famRtApply(st){
+  st=st||famRtState();famRtSave(st);
+  for(const[id,line]of Object.entries(fs.rt||{})){if(st[id]){if(!fs.map.hasLayer(line))line.addTo(fs.map)}else if(fs.map.hasLayer(line))fs.map.removeLayer(line)}
+  document.querySelectorAll(".rtleg input[data-rt]").forEach(i=>{i.checked=!!st[i.dataset.rt]});
+}
+function famRtLegend(){
+  if(!fs.map||fs.leg)return;
+  const C=L.Control.extend({options:{position:"bottomleft"},onAdd(){
+    const d=L.DomUtil.create("div","rtleg");
+    L.DomEvent.disableClickPropagation(d);L.DomEvent.disableScrollPropagation(d);
+    const st=famRtState();
+    d.innerHTML=`<div class="rtleg-h">מסלולים <button type="button" class="rtall">הכול</button> <button type="button" class="rtnone">הסתר</button></div>`+
+      (typeof ROUTES!=="undefined"?ROUTES:[]).map(r=>`<label><input type="checkbox" data-rt="${r.id}" ${st[r.id]?"checked":""}><i style="background:${RTCOL[r.id]}"></i>${RTLBL[r.id]||r.n}</label>`).join("");
+    d.querySelectorAll("input").forEach(inp=>{inp.onchange=()=>{const s=famRtState();s[inp.dataset.rt]=inp.checked?1:0;famRtApply(s)}});
+    d.querySelector(".rtall").onclick=()=>famRtApply({old:1,ctr:1,north:1,mtsk:1});
+    d.querySelector(".rtnone").onclick=()=>famRtApply({old:0,ctr:0,north:0,mtsk:0});
+    return d;
+  }});
+  fs.leg=new C();fs.map.addControl(fs.leg);
+}
+function famToggleFull(on){
+  const el=$("#fmap");if(!el||!fs.map){document.body.classList.remove("fmap-on");return}
+  if(on==null)on=!el.classList.contains("fmap-full");
+  el.classList.toggle("fmap-full",on);document.body.classList.toggle("fmap-on",on);
+  const b=el.querySelector(".fmap-xbtn");
+  if(b){b.textContent=on?"✕":"⛶";b.title=on?"חזרה לגודל רגיל":"מסך מלא";b.setAttribute("aria-label",b.title)}
+  const tick=()=>{if(fs.map){fs.map.invalidateSize();famSpreadMarkers()}};
+  setTimeout(tick,80);setTimeout(tick,320);
+}
+function famAddExpand(){
+  if(!fs.map||fs.xctl)return;
+  const C=L.Control.extend({options:{position:"topright"},onAdd(){
+    const d=L.DomUtil.create("div","leaflet-bar fmap-x");
+    d.innerHTML=`<a class="fmap-xbtn" href="#" role="button" title="מסך מלא" aria-label="מסך מלא">⛶</a>`;
+    L.DomEvent.disableClickPropagation(d);
+    d.querySelector("a").onclick=e=>{e.preventDefault();famToggleFull()};
+    return d;
+  }});
+  fs.xctl=new C();fs.map.addControl(fs.xctl);
+  if(!fs.xesc){fs.xesc=e=>{if(e.key=="Escape")famToggleFull(false)};document.addEventListener("keydown",fs.xesc)}
+}

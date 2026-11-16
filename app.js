@@ -4,7 +4,7 @@ const tel=(n,l)=>`<a class="btn" href="tel:${n.replace(/[^+\d*]/g,'')}">📞 ${l
 const V={
 trip:()=>`<div class="box"><h2>הטיול</h2><p>✈️ <b>16.11.2026</b> → 🏠 <b>22.11.2026</b> (7 ימים)</p><p>👨‍👩‍👦‍👦 ויטאלי, יעל (יוליה), אדם (2014), טום (2015)</p><p>🥋 מחנה אימונים בג'ודו – ${T}</p><p id="cd"></p></div>
 <div class="box"><h2>✅ רשימת ציוד</h2><button class="btn" onclick="go('pack')">לרשימה</button></div>
-<div class="box hotel"><h2>🏨 מלון · Hotel Residence Plaza</h2><p>כתובת: 19 T Gujareti I St, Tbilisi 0144, Georgia<br>📍 טביליסי · לינה לכל המשפחה</p>
+<div class="box hotel"><h2>🏨 מלון · Hotel Residence Plaza</h2><p>כתובת: 19 Gujareti St, Tbilisi 0144, Georgia<br>📍 טביליסי · לינה לכל המשפחה</p>
 <a class="btn" href="https://share.google/c8NfljzoHhfhLHZFu" target="_blank" rel="noopener">🗺️ Google Maps</a>
 <a class="btn alt" href="https://residenceplaza.ge/" target="_blank" rel="noopener">🌐 אתר המלון</a></div>`+wantedBox(),
 fly:()=>V.flySec()+V.ppSec(),
@@ -14,7 +14,7 @@ flySec:()=>`<div class="box bpbox"><button type="button" class="btn bpbtn" id="b
 <div class="ok">✅ צ'ק-אין בוצע<br>🚪 פתיחת שער 04:25 · סגירת שער 05:00 · מספר השער טרם פורסם<br>🚕 מונית ב-1:50, הגעה משוערת ~2:20<br>כרטיסי העלייה בכפתור למעלה, עם אותו קוד כמו הדרכונים.</div></div>
 <div class="box"><h2>חזור – א' 22.11.2026</h2><p><b>LY5118</b> · מופעל ע"י KlasJet עבור סאן דור<br>🛫 12:05 טביליסי (TBS)<br>🛬 12:45 נתב"ג, <b>טרמינל 3</b> – שעון ישראל<br>⏱️ 2:40 שעות<br>💺 ויטאלי 10F · אדם 10E · יעל (יוליה) 09F · טום 09E</p></div>
 <div class="box"><h2>🧳 כבודה (Lite)</h2><p>לכל נוסע: תיק אישי מתחת למושב + טרולי עד 8 ק"ג (נשלח לבטן המטוס ללא עלות). <b>מזוודה לבטן לא כלולה (0PC)</b> – אם צריך לציוד ג'ודו, להוסיף מראש באתר (זול יותר מבשדה).</p><p class="sub">מקור: אישורי הזמנה של אל על, 29.9.2026. ההלוך יוצא מטרמינל 1 והחזרה נוחתת בטרמינל 3.</p></div>`,
-judoSec:()=>`<div class="box"><h2>🥋 מחנה האימונים</h2><p>שם המחנה / מועדון: ${T}<br>עיר ומקום לינה: טביליסי · <b>Hotel Residence Plaza</b><br>כתובת: 19 T Gujareti I St, Tbilisi 0144<br>איש קשר + טלפון: ${T}<br>לוח אימונים: ${T}<br>הסעה משדה התעופה: ${T}</p>
+judoSec:()=>`<div class="box"><h2>🥋 מחנה האימונים</h2><p>שם המחנה / מועדון: ${T}<br>עיר ומקום לינה: טביליסי · <b>Hotel Residence Plaza</b><br>כתובת: 19 Gujareti St, Tbilisi 0144<br>איש קשר + טלפון: ${T}<br>לוח אימונים: ${T}<br>הסעה משדה התעופה: ${T}</p>
 <a class="btn" href="https://www.google.com/maps/dir/?api=1&destination=41.692288,44.833153" target="_blank" rel="noopener">🧭 ניווט למלון</a>
 <a class="btn alt" href="https://residenceplaza.ge/" target="_blank" rel="noopener">🌐 residenceplaza.ge</a></div>`,
 ins:()=>`<div class="box"><h2>🛡️ ביטוח נסיעות – הפניקס SMART TRAVEL</h2><p>פוליסה: <span class="code">26/096/667/8762601</span><br>תקופה: 16/11/2026–22/11/2026 · יעד: גאורגיה<br>מחיר כולל: 150$ (תשלום אחד)<br>מבוטחים: ויטאלי, יעל, אדם, טום בוצ'אצקי</p>
@@ -129,14 +129,14 @@ async function fxInit(){
 }
 // ---------- router ----------
 const ALIAS={judo:"info",go:"info",pp:"fly"},TABK=["info","trip","fam","fly","routes","ins","pack"];
-function go(t){t=ALIAS[t]||t;if(!TABK.includes(t))t="info";location.hash=t;$("#main").innerHTML=V[t]();$("#tabs").innerHTML=TABS.map(([k,i,l])=>`<button class="${k==t?'on':''}" data-t="${k}">${i}<br>${l}</button>`).join("");$("#tabs").querySelectorAll("button").forEach(b=>b.onclick=()=>go(b.dataset.t));scrollTo(0,0);
+function go(t){t=ALIAS[t]||t;if(!TABK.includes(t))t="info";if(typeof famToggleFull==="function")famToggleFull(false);document.body.classList.remove("fmap-on");location.hash=t;$("#main").innerHTML=V[t]();$("#tabs").innerHTML=TABS.map(([k,i,l])=>`<button class="${k==t?'on':''}" data-t="${k}">${i}<br>${l}</button>`).join("");$("#tabs").querySelectorAll("button").forEach(b=>b.onclick=()=>go(b.dataset.t));scrollTo(0,0);
 if(t=="info"){wx();fxInit()}
 if(t=="trip"){const n=Math.ceil((new Date("2026-11-16")-new Date())/864e5);$("#cd").textContent=n>0?`⏳ עוד ${n} ימים לטיסה`:""}
 if(t=="fly"){vault();const b=$("#bpopen");if(b)b.onclick=bpOpen}
 if(t=="routes")routesInit()
 if(t=="fam")famInit()
 if(t=="pack")packInit()}
-const _info=V.info;V.hotelNav=()=>`<div class="box hotel"><h2>🏨 Hotel Residence Plaza</h2><p>19 T Gujareti I St, Tbilisi 0144</p><a class="btn" href="https://www.google.com/maps/dir/?api=1&destination=41.692288,44.833153" target="_blank" rel="noopener">🧭 ניווט למלון</a></div>`;V.info=()=>V.hotelNav()+fxView()+_info()+V.judoSec()+`<div class="box"><h2>🛡️ ביטוח נסיעות</h2><button class="btn alt" onclick="go('ins')">פרטי הביטוח – הפניקס</button></div>`;
+const _info=V.info;V.hotelNav=()=>`<div class="box hotel"><h2>🏨 Hotel Residence Plaza</h2><p>19 Gujareti St, Tbilisi 0144</p><a class="btn" href="https://www.google.com/maps/dir/?api=1&destination=41.692288,44.833153" target="_blank" rel="noopener">🧭 ניווט למלון</a></div>`;V.info=()=>V.hotelNav()+fxView()+_info()+V.judoSec()+`<div class="box"><h2>🛡️ ביטוח נסיעות</h2><button class="btn alt" onclick="go('ins')">פרטי הביטוח – הפניקס</button></div>`;
 V.pack=packView;
 const JOINED=famJoinFromHash();
 go(JOINED?"fam":location.hash.slice(1)||"info");

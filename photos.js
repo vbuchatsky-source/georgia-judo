@@ -1,5 +1,5 @@
 // Real photos per place (index-aligned with PLACES). Commons photos keep author+license; others are the venue's own/official photos.
-const PH_IDX=["peace", "rike", "ropeway", "kartlis", "see360", "orbeliani", "waterfall", "meidan", "freedom", "ghouse", "ribs", "zodiaqo", "drybridge", "chronicle", "gardenia", "svetitskhoveli", "ethno"];
+const PH_IDX=["peace", "rike", "ropeway", "kartlis", "see360", "orbeliani", "waterfall", "meidan", "freedom", "ghouse", "ribs", "zodiaqo", "drybridge", "chronicle", "gardenia", "svetitskhoveli", "ethno", "ortachala", "lumos", "ollivander"];
 const PHOTOS={"peace":[["img/peace/1.jpg","Andrew Milligan sumo · CC BY 2.0 · Wikimedia Commons","https://commons.wikimedia.org/wiki/File:Mtkvari_River_Cruise,_Tbilisi,_Georgia_(48813987373).jpg"],
 ["img/peace/2.jpg","falco · CC0 · Wikimedia Commons","https://commons.wikimedia.org/wiki/File:Tbilisi_Peace_Bridge_and_Kura_River_by_Falco.jpg"],
 ["img/peace/3.jpg","ako-aleko · CC BY-SA 3.0 · Wikimedia Commons","https://commons.wikimedia.org/wiki/File:Mtkvari_-_panoramio.jpg"],
@@ -36,7 +36,10 @@ const PHOTOS={"peace":[["img/peace/1.jpg","Andrew Milligan sumo · CC BY 2.0 · 
 ["img/freedom/2.jpg","Preacher lad · CC BY-SA 4.0 · Wikimedia Commons","https://commons.wikimedia.org/wiki/File:Liberty_(Freedom)_square,_Tbilisi_(02).jpg"],
 ["img/freedom/3.jpg","Daibo Taku · CC BY 3.0 · Wikimedia Commons","https://commons.wikimedia.org/wiki/File:Dzveli_Tbilisi,_Tbilisi,_Georgia_-_panoramio_(116).jpg"],
 ["img/freedom/4.jpg","Daibo Taku · CC BY 3.0 · Wikimedia Commons","https://commons.wikimedia.org/wiki/File:Dzveli_Tbilisi,_Tbilisi,_Georgia_-_panoramio_(143).jpg"],
-["img/freedom/5.jpg","Art Anderson · CC BY-SA 3.0 · Wikimedia Commons","https://commons.wikimedia.org/wiki/File:Freedom_Square_-_panoramio.jpg"]],"ghouse":[["img/ghouse/1.jpg","האתר הרשמי של Georgian House","https://www.georgianhouse.ge/"]],"ribs":[],"zodiaqo":[["img/zodiaqo/1.jpg","האתר הרשמי של Zodiaqo","https://zodiaqo.ofoodo.com/us/about"]],"drybridge":[["img/drybridge/1.jpg","tjabeljan · CC BY 2.0 · Wikimedia Commons","https://commons.wikimedia.org/wiki/File:Tbilisi167_(43778336160).jpg"],
+["img/freedom/5.jpg","Art Anderson · CC BY-SA 3.0 · Wikimedia Commons","https://commons.wikimedia.org/wiki/File:Freedom_Square_-_panoramio.jpg"]],"ghouse":[["img/ghouse/1.jpg","האתר הרשמי של Georgian House","https://www.georgianhouse.ge/"]],"ribs":[["img/ribs/1.jpg","גלריית המסעדה ב-Yandex Maps","https://yandex.com.ge/maps/org/ribs_beer_wine/65412780041/gallery/"],
+["img/ribs/2.jpg","גלריית המסעדה ב-Yandex Maps","https://yandex.com.ge/maps/org/ribs_beer_wine/65412780041/gallery/"],
+["img/ribs/3.jpg","גלריית המסעדה ב-Yandex Maps","https://yandex.com.ge/maps/org/ribs_beer_wine/65412780041/gallery/"],
+["img/ribs/4.jpg","גלריית המסעדה ב-Yandex Maps","https://yandex.com.ge/maps/org/ribs_beer_wine/65412780041/gallery/"]],"zodiaqo":[["img/zodiaqo/1.jpg","האתר הרשמי של Zodiaqo","https://zodiaqo.ofoodo.com/us/about"]],"drybridge":[["img/drybridge/1.jpg","tjabeljan · CC BY 2.0 · Wikimedia Commons","https://commons.wikimedia.org/wiki/File:Tbilisi167_(43778336160).jpg"],
 ["img/drybridge/2.jpg","tjabeljan · CC BY 2.0 · Wikimedia Commons","https://commons.wikimedia.org/wiki/File:Tbilisi172_(31723744848).jpg"],
 ["img/drybridge/3.jpg","Alexkom000 · CC BY 4.0 · Wikimedia Commons","https://commons.wikimedia.org/wiki/File:2025-03-30_Dry_Bridge_Market,_Tbilisi_2.jpg"],
 ["img/drybridge/4.jpg","Goichev · CC BY-SA 4.0 · Wikimedia Commons","https://commons.wikimedia.org/wiki/File:9marti2109.jpg"],
@@ -54,5 +57,11 @@ const PHOTOS={"peace":[["img/peace/1.jpg","Andrew Milligan sumo · CC BY 2.0 · 
 ["img/ethno/2.jpg","דף המסעדה ב-Wolt","https://wolt.com/en/geo/tbilisi/restaurant/ethnographer"],
 ["img/ethno/3.jpg","דף המסעדה ב-Wolt","https://wolt.com/en/geo/tbilisi/restaurant/ethnographer"],
 ["img/ethno/4.jpg","דף המסעדה ב-Wolt","https://wolt.com/en/geo/tbilisi/restaurant/ethnographer"],
-["img/ethno/5.jpg","דף המסעדה ב-Wolt","https://wolt.com/en/geo/tbilisi/restaurant/ethnographer"]]};
+["img/ethno/5.jpg","דף המסעדה ב-Wolt","https://wolt.com/en/geo/tbilisi/restaurant/ethnographer"]],"lumos":[["img/lumos/1.jpg","tbilisifoodie.ge (צילום מ-Google Maps)","https://tbilisifoodie.ge/best-asian-restaurants-tbilisi"],
+["img/lumos/2.jpg","גלריית המסעדה ב-Yandex Maps","https://yandex.com.ge/maps/org/lumos/8419266204/gallery/"],
+["img/lumos/3.jpg","גלריית המסעדה ב-Yandex Maps","https://yandex.com.ge/maps/org/lumos/8419266204/gallery/"],
+["img/lumos/4.jpg","גלריית המסעדה ב-Yandex Maps","https://yandex.com.ge/maps/org/lumos/8419266204/gallery/"]],"ollivander":[["img/ollivander/1.jpg","גלריית החנות ב-Yandex Maps","https://yandex.com.ge/maps/org/ollivander_s_store/126171248275/gallery/"],
+["img/ollivander/2.jpg","גלריית החנות ב-Yandex Maps","https://yandex.com.ge/maps/org/ollivander_s_store/126171248275/gallery/"],
+["img/ollivander/3.jpg","גלריית החנות ב-Yandex Maps","https://yandex.com.ge/maps/org/ollivander_s_store/126171248275/gallery/"],
+["img/ollivander/4.jpg","גלריית החנות ב-Yandex Maps","https://yandex.com.ge/maps/org/ollivander_s_store/126171248275/gallery/"]]};
 const photosOf=i=>PHOTOS[PH_IDX[i]]||[];
