@@ -102,3 +102,9 @@ nav button,nav button.on{font-size:14px;padding:10px 2px;line-height:1.35}
 .bpm{background:#fff;border-radius:16px;padding:16px;max-width:560px;width:100%;margin:0 auto 40px}
 .bpm input{width:100%;margin:8px 0;padding:12px;font-size:20px;border-radius:10px;border:1px solid #ddd;box-sizing:border-box}
 #bpz{z-index:100}
+
+.fxrows{display:flex;flex-direction:column;gap:8px;margin:8px 0 4px}
+.fxrow{display:flex;align-items:center;gap:12px;margin:0;background:#faf6f0;border-radius:12px;padding:8px 12px}
+.fxn{flex:0 0 6.8rem;font-weight:700;font-size:18px}
+.fxn small{font-weight:800;color:#7a5a46;font-size:18px}
+.fxrow input{flex:1;margin:0;font-size:28px;font-weight:800;text-align:left;direction:ltr;border:0;background:transparent;padding:4px 0;min-width:0;width:100%;color:#1a1a1a}

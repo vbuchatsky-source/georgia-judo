@@ -80,16 +80,63 @@ function showWx(d,off,sel){
   el.innerHTML=`<p>עכשיו: ${WI(d.current.weather_code)} <b>${Math.round(d.current.temperature_2m)}°</b>${off?" (נתון שמור)":""}</p><div class="wxchips">${chips}</div>`+hourly;
   el.querySelectorAll("[data-day]").forEach(b=>b.onclick=()=>showWx(d,off,b.dataset.day));
 }
+
+// ---------- currency calculator ----------
+// Fallback rates verified from open.er-api.com on 15.11.2026 (1 USD = 3.21 ILS, 2.59 GEL, 0.906 EUR)
+const FX_CUR=[["USD","$","דולר"],["EUR","€","יורו"],["GEL","₾","לארי"],["ILS","₪","שקל"]];
+const FX_FALLBACK={USD:1,EUR:0.906,GEL:2.59,ILS:3.21};
+const FXURL="https://open.er-api.com/v6/latest/USD";
+let FX=null,fxLock=0;
+const fxFmt=n=>{if(!isFinite(n))return"";const r=Math.round(n*100)/100;return Math.abs(r-Math.round(r))<1e-9?String(Math.round(r)):r.toFixed(2)};
+const fxWhen=d=>d.toLocaleDateString("he-IL",{timeZone:"Asia/Jerusalem",day:"2-digit",month:"2-digit",year:"numeric"});
+function fxView(){return `<div class="box" id="fxbox"><h2>💱 מחשבון מטבע</h2>
+<div class="fxrows">${FX_CUR.map(([c,s,n])=>`<label class="fxrow"><span class="fxn">${n} <small>${s}</small></span><input id="fx-${c}" type="text" inputmode="decimal" enterkeyhint="done" dir="ltr" placeholder="0" autocomplete="off"></label>`).join("")}</div>
+<p class="sub" id="fxmeta">טוען שערים…</p></div>`}
+function fxApply(rates,when,src){
+  FX={USD:1,EUR:+rates.EUR,GEL:+rates.GEL,ILS:+rates.ILS};
+  const el=$("#fxmeta");if(!el)return;
+  const note=src=="live"?"":src=="cache"?" (שמורים)":" (שערים שמורים מראש)";
+  el.textContent=`שערים מעודכנים ל-${when}${note} · 1 $ = ${fxFmt(FX.ILS)} ₪ = ${fxFmt(FX.GEL)} ₾`;
+}
+function fxRecalc(from){
+  if(!FX||fxLock)return;
+  const inp=$(`#fx-${from}`);if(!inp)return;
+  const raw=String(inp.value).replace(/,/g,".").replace(/[^\d.]/g,"");
+  if(raw===""||raw==="."){fxLock=1;FX_CUR.forEach(([c])=>{if(c!=from){const i=$(`#fx-${c}`);if(i)i.value=""}});fxLock=0;return}
+  const v=parseFloat(raw);if(!isFinite(v))return;
+  const usd=v/FX[from];
+  fxLock=1;
+  FX_CUR.forEach(([c])=>{if(c==from)return;const i=$(`#fx-${c}`);if(i)i.value=fxFmt(usd*FX[c])});
+  fxLock=0;
+}
+async function fxInit(){
+  if(!$("#fxbox"))return;
+  let cached=null;try{cached=JSON.parse(localStorage["georgia-fx"]||"null")}catch(e){}
+  if(cached&&cached.rates&&cached.rates.GEL&&cached.rates.ILS)fxApply(cached.rates,cached.when,"cache");
+  else fxApply(FX_FALLBACK,"15.11.2026","fallback");
+  FX_CUR.forEach(([c])=>{const i=$(`#fx-${c}`);if(!i)return;i.oninput=()=>fxRecalc(c);i.onfocus=()=>i.select()});
+  try{
+    const d=await(await fetch(FXURL,{cache:"no-store"})).json();
+    if(d&&d.result=="success"&&d.rates&&d.rates.GEL&&d.rates.ILS&&d.rates.EUR){
+      const rates={USD:1,EUR:d.rates.EUR,GEL:d.rates.GEL,ILS:d.rates.ILS};
+      const when=fxWhen(new Date((d.time_last_update_unix||0)*1000));
+      localStorage["georgia-fx"]=JSON.stringify({rates,when});
+      fxApply(rates,when,"live");
+      const filled=FX_CUR.find(([c])=>{const i=$(`#fx-${c}`);return i&&i.value});
+      if(filled)fxRecalc(filled[0]);
+    }
+  }catch(e){}
+}
 // ---------- router ----------
 const ALIAS={judo:"info",go:"info",pp:"fly"},TABK=["info","trip","fam","fly","routes","ins","pack"];
 function go(t){t=ALIAS[t]||t;if(!TABK.includes(t))t="info";location.hash=t;$("#main").innerHTML=V[t]();$("#tabs").innerHTML=TABS.map(([k,i,l])=>`<button class="${k==t?'on':''}" data-t="${k}">${i}<br>${l}</button>`).join("");$("#tabs").querySelectorAll("button").forEach(b=>b.onclick=()=>go(b.dataset.t));scrollTo(0,0);
-if(t=="info")wx()
+if(t=="info"){wx();fxInit()}
 if(t=="trip"){const n=Math.ceil((new Date("2026-11-16")-new Date())/864e5);$("#cd").textContent=n>0?`⏳ עוד ${n} ימים לטיסה`:""}
 if(t=="fly"){vault();const b=$("#bpopen");if(b)b.onclick=bpOpen}
 if(t=="routes")routesInit()
 if(t=="fam")famInit()
 if(t=="pack")packInit()}
-const _info=V.info;V.hotelNav=()=>`<div class="box hotel"><h2>🏨 Hotel Residence Plaza</h2><p>19 T Gujareti I St, Tbilisi 0144</p><a class="btn" href="https://www.google.com/maps/dir/?api=1&destination=41.692288,44.833153" target="_blank" rel="noopener">🧭 ניווט למלון</a></div>`;V.info=()=>V.hotelNav()+_info()+V.judoSec()+`<div class="box"><h2>🛡️ ביטוח נסיעות</h2><button class="btn alt" onclick="go('ins')">פרטי הביטוח – הפניקס</button></div>`;
+const _info=V.info;V.hotelNav=()=>`<div class="box hotel"><h2>🏨 Hotel Residence Plaza</h2><p>19 T Gujareti I St, Tbilisi 0144</p><a class="btn" href="https://www.google.com/maps/dir/?api=1&destination=41.692288,44.833153" target="_blank" rel="noopener">🧭 ניווט למלון</a></div>`;V.info=()=>V.hotelNav()+fxView()+_info()+V.judoSec()+`<div class="box"><h2>🛡️ ביטוח נסיעות</h2><button class="btn alt" onclick="go('ins')">פרטי הביטוח – הפניקס</button></div>`;
 V.pack=packView;
 const JOINED=famJoinFromHash();
 go(JOINED?"fam":location.hash.slice(1)||"info");
