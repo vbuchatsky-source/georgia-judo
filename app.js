@@ -6,7 +6,7 @@ trip:()=>`<div class="box"><h2>הטיול</h2><p>✈️ <b>16.11.2026</b> → �
 <div class="box"><h2>✅ רשימת ציוד</h2><button class="btn" onclick="go('pack')">לרשימה</button></div>
 <div class="box hotel"><h2>🏨 מלון · Hotel Residence Plaza</h2><p>כתובת: 19 Gujareti St, Tbilisi 0144, Georgia<br>📍 טביליסי · לינה לכל המשפחה</p>
 <a class="btn" href="https://share.google/c8NfljzoHhfhLHZFu" target="_blank" rel="noopener">🗺️ Google Maps</a>
-<a class="btn alt" href="https://residenceplaza.ge/" target="_blank" rel="noopener">🌐 אתר המלון</a></div>`+wantedBox(),
+<a class="btn alt" href="https://residenceplaza.ge/" target="_blank" rel="noopener">🌐 אתר המלון</a></div>`+wantedBox()+clinicBox(),
 fly:()=>V.flySec()+V.ppSec(),
 flySec:()=>`<div class="box bpbox"><button type="button" class="btn bpbtn" id="bpopen">🎫 כרטיסי עלייה – ברקודים</button><p class="sub">לחצו כאן, הזינו את קוד הכספת, והברקודים יופיעו מיד</p></div>
 <div class="box"><h2>✈️ אל על · קוד הזמנה <span class="code">Y8YTF9</span></h2><p>מחלקה: Economy Lite · כל הארבעה באותה הזמנה</p><a class="btn alt" href="https://booking.elal.com/manage/login?lang=he">ניהול הזמנה / צ'ק-אין</a></div>

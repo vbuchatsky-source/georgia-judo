@@ -25,7 +25,9 @@ const PLACES=[
 {n:"חנות אוליוונדרס",e:"Ollivander's Shop · 5 Kekelidze St, Vake",k:"a",d:"חנות נושא של הארי פוטר: שרביטים, גלימות, צעיפים ומזכרות. פתוחה כל יום בערך 10:00–21:00.",lat:41.70801,lng:44.77828,q:"Ollivander's Shop, 5 Kekelidze Street, Tbilisi",s:[],tel:"+995 322 11 04 50"},
 {n:"מסעדת Georgian House (דידובי)",e:"Georgian House restaurant · 2 Giorgi Tsabadze St",k:"r",d:"המסעדה הגאורגית הידועה, עם מופעים חיים. לא לבלבל עם המלון באותו שם באבלבארי.",lat:41.72050,lng:44.78587,q:"Georgian House restaurant, 2 Giorgi Tsabadze Street, Tbilisi",s:[S1],want:1},
 {n:"מסעדת פוניקולר",e:"Funicular Restaurant · Mtatsminda plateau",k:"r",d:"מתחם היסטורי בראש הר מתצמינדה, עם תצפית על העיר. ידוע בפונצ'יקי (סופגניות קרם) בבית הקפה. עולים ברכבל הרים מהתחנה התחתונה ברחוב דניאל צ'ונקדזה, או במונית ישר למעלה (~11 ק\"מ · ~23 דק׳ מהמלון). בית הקפה פתוח כל יום 12:00–23:00.",lat:41.69466,lng:44.78667,q:"Funicular Restaurant, Mtatsminda plateau, Tbilisi",s:[],want:1,tel:"+995 577 74 44 00"},
-{n:"תחנת הפוניקולר התחתונה",e:"Tbilisi Funicular lower station · 22 Daniel Chonkadze St",k:"a",d:"התחנה התחתונה של רכבל ההרים למתצמינדה ולמסעדת פוניקולר. לא לבלבל עם המסעדה בראש ההר. כ-5 ק\"מ · ~9 דק׳ במונית מהמלון (העלייה ברגל תלולה, כשעה).",lat:41.69534,lng:44.79185,q:"Tbilisi Funicular lower station, 22 Daniel Chonkadze Street, Tbilisi",s:[],w:1}
+{n:"תחנת הפוניקולר התחתונה",e:"Tbilisi Funicular lower station · 22 Daniel Chonkadze St",k:"a",d:"התחנה התחתונה של רכבל ההרים למתצמינדה ולמסעדת פוניקולר. לא לבלבל עם המסעדה בראש ההר. כ-5 ק\"מ · ~9 דק׳ במונית מהמלון (העלייה ברגל תלולה, כשעה).",lat:41.69534,lng:44.79185,q:"Tbilisi Funicular lower station, 22 Daniel Chonkadze Street, Tbilisi",s:[],w:1},
+{n:"מכון מדרסים · דינמו",e:"Akhali Khedva · 2 Tsereteli Ave, Dinamo Arena",k:"s",d:"מכון המדרסים אחלי חדבה, בסניף דינמו. נכנסים בשער 5 של אצטדיון דינמו, סקטורים 1–2. פתוח כל יום 10:00–19:00. בהזמנת 3 זוגות יש 20% הנחה.",lat:41.723029,lng:44.789794,q:"Dinamo Arena, 2 Akaki Tsereteli Avenue, Tbilisi",s:[],w:1,tel:"+995 558 98 10 98",wa:"https://wa.me/995558981098"},
+{n:"מכון מדרסים · ליובליאנה",e:"Akhali Khedva · 60 Ljubljana St",k:"s",d:"סניף מכון המדרסים ברחוב ליובליאנה 60, דיגומי. פתוח כל יום 10:00–19:00. בהזמנת 3 זוגות יש 20% הנחה.",lat:41.777042,lng:44.774644,q:"Akhali Khedva, 60 Ljubljana Street, Tbilisi",s:[],w:1,tel:"+995 558 98 10 98",wa:"https://wa.me/995558981098"}
 ];
 const hav=(a,b,c,d)=>{const R=6371,r=x=>x*Math.PI/180,x=Math.sin(r(c-a)/2)**2+Math.cos(r(a))*Math.cos(r(c))*Math.sin(r(d-b)/2)**2;return 2*R*Math.asin(Math.sqrt(x))};
 function navMode(p){const i=PLACES.indexOf(p);let drive=0,walk=0;
@@ -45,16 +47,16 @@ function wantedBox(){
 const CLINIC={
   n:"Akhali Khedva · ახალი ხედვა · מדרסים",
   status:"⏳ עדיין מחליטים",
-  hours:"ב׳–א׳ 10:00–19:00 · מומלץ לקבוע תור מראש",
+  hours:"כל יום 10:00–19:00 · מומלץ לקבוע תור מראש",
   wa:"+995 558 98 10 98",walink:"https://wa.me/995558981098",
   email:"info@akhalikhedva.ge",
-  price:"אבחון 70 ₾ (≈₪86) + 240 ₾ (≈₪295) למדרס. 3 מדרסים עם אבחון: 790 ₾ (≈₪972).",
+  price:"אבחון 70 ₾ (≈₪86) + 240 ₾ (≈₪295) למדרס. 3 מדרסים עם אבחון: 790 ₾ (≈₪972). הנחה 20% בהזמנת 3 זוגות.",
   tech:"אבחון על מסלול חיישנים איטלקי DIASU (עמידה והליכה), 20–30 דק׳. מדרסים מקצף אנטי־אלרגני PEDSAN, מחזיקים 8–12 חודשים.",
   timing:"אבחון ב־16–17.11 → מוכן ב־20–21.11.",
   shoes:"להביא נעלי ספורט גדולות בחצי עד מספר אחד. המידה שלך: 42.5–43.",
   branches:[
-    {id:"dinamo",rec:1,n:"סניף דינמו (מומלץ – יש מפעל ותיקונים במקום)",e:"Tsereteli Ave 2 · Dinamo Arena, שער 5, סקטורים 1–2",lat:41.7230285,lng:44.7897943,km:6.8,min:10},
-    {id:"ljub",rec:0,n:"סניף ליובליאנה",e:"Ljubljana St 60, Tbilisi",lat:41.7771655,lng:44.7746264,km:13.8,min:18}
+    {id:"dinamo",rec:1,n:"סניף דינמו (מומלץ – יש מפעל ותיקונים במקום)",e:"Tsereteli Ave 2 · אצטדיון דינמו, שער 5, סקטורים 1–2",lat:41.723029,lng:44.789794,km:6.8,min:10},
+    {id:"ljub",rec:0,n:"סניף ליובליאנה",e:"Ljubljana (Lyublyana) St 60, דיגומי",lat:41.777042,lng:44.774644,km:13.8,min:18}
   ]
 };
 const ROUTES=[
@@ -94,10 +96,12 @@ function routeMaps(r){
 function fmtDur(m){const h=Math.floor(m/60),x=m%60;return h?h+" שע׳ "+x+" דק׳":x+" דק׳"}
 let RT=+(localStorage.getItem("rt")||0);
 const RSHORT=["עיר עתיקה","מרכז","כרוניקה","מצחטה"];
-function clinicBox(){return `<details class="more"><summary>🩺 מדרסים · ${CLINIC.status}</summary>
+function clinicBox(){return `<div class="box"><h2>👟 מכון מדרסים</h2>
 <p><b>${CLINIC.n}</b></p><p>🕐 ${CLINIC.hours}</p><p>💰 ${CLINIC.price}</p><p>🔬 ${CLINIC.tech}</p><p>📅 ${CLINIC.timing}</p><p>👟 ${CLINIC.shoes}</p>
-<p>📞 <a href="${CLINIC.walink}" target="_blank" rel="noopener">WhatsApp ${CLINIC.wa}</a> · <a href="mailto:${CLINIC.email}">${CLINIC.email}</a></p>
-${CLINIC.branches.map(b=>`<div class="br"><b>${b.rec?"⭐ ":""}${b.n}</b><br><span class="sub">${b.e}</span><br>🚕 ~${b.km} ק"מ · ~${b.min} דק׳ מהמלון<a class="btn alt" href="https://www.google.com/maps/dir/?api=1&origin=${HOTEL.lat},${HOTEL.lng}&destination=${b.lat},${b.lng}&travelmode=driving" target="_blank" rel="noopener">🧭 ניווט ל${b.rec?"דינמו":"ליובליאנה"}</a></div>`).join("")}</details>`}
+<p class="sub">${CLINIC.status}</p>
+<a class="btn" href="${CLINIC.walink}" target="_blank" rel="noopener">💬 WhatsApp ${CLINIC.wa}</a>
+<a class="btn alt" href="mailto:${CLINIC.email}">✉️ ${CLINIC.email}</a>
+${CLINIC.branches.map(b=>`<div class="br"><b>${b.rec?"⭐ ":""}${b.n}</b><br><span class="sub">${b.e}</span><br>🚕 ~${b.km} ק"מ · ~${b.min} דק׳ מונית מהמלון<a class="btn alt" href="https://www.google.com/maps/dir/?api=1&origin=${HOTEL.lat},${HOTEL.lng}&destination=${b.lat},${b.lng}&travelmode=driving" target="_blank" rel="noopener">🧭 ניווט ל${b.rec?"דינמו":"ליובליאנה"}</a></div>`).join("")}</div>`}
 function routesView(){const r=ROUTES[RT]||ROUTES[0];
   return `<div class="rchips">${ROUTES.map((x,i)=>`<button data-r="${i}" class="${i==RT?"on":""}">${RSHORT[i]||x.n}</button>`).join("")}</div>
 <section class="rhead"><h2>${r.n}</h2>
@@ -110,7 +114,7 @@ ${r.stops.map((s,idx)=>stopCard(r,s,idx)).join("")}
 <details class="more"><summary>ℹ️ על המסלולים</summary><p>כל מסלול מתחיל ונגמר ב־Hotel Residence Plaza. המרחקים והזמנים לפי ניתוב הליכה/נסיעה אמיתי (OSRM), בלי זמן הביקור עצמו.</p><p>📅 16–22.11 · שלבו מסלול בין האימונים. ב־22.11 הטיסה ב־12:05 – רק משהו קצר בבוקר.</p></details>
 ${clinicBox()}`}
 const esc=t=>String(t).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-const STOPEMO=["🌉","🌳","🚡","🗽","🍷","♨️","💦","🛍️","🏛️","🍲","🍖","🍰","🖼️","🗿","🌷","⛪","💃","🍽️","🍜","🪄","🍲","🍩","🚡"];
+const STOPEMO=["🌉","🌳","🚡","🗽","🍷","♨️","💦","🛍️","🏛️","🍲","🍖","🍰","🖼️","🗿","🌷","⛪","💃","🍽️","🍜","🪄","🍲","🍩","🚡","👟","👟"];
 function gallery(i){const L=photosOf(i);
   if(!L.length)return `<div class="gal none">${STOPEMO[i]||"📍"} <span>אין תמונות</span></div>`;
   return `<div class="gal" data-p="${i}"><div class="gtrack">${L.map((p,k)=>`<img src="${p[0]}" ${k?'loading="lazy"':''} decoding="async" alt="${esc(PLACES[i].n)} ${k+1}" data-k="${k}">`).join("")}</div>${L.length>1?`<div class="dots">${L.map((_,k)=>`<i class="${k?"":"on"}"></i>`).join("")}</div>`:""}</div>`}

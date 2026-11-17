@@ -1,5 +1,5 @@
 // Real photos per place (index-aligned with PLACES). Commons photos keep author+license; others are the venue's own/official photos.
-const PH_IDX=["peace", "rike", "ropeway", "kartlis", "see360", "orbeliani", "waterfall", "meidan", "freedom", "ghouse", "ribs", "zodiaqo", "drybridge", "chronicle", "gardenia", "svetitskhoveli", "ethno", "ortachala", "lumos", "ollivander", "ghouse_didube", "funicular", "funilower"];
+const PH_IDX=["peace", "rike", "ropeway", "kartlis", "see360", "orbeliani", "waterfall", "meidan", "freedom", "ghouse", "ribs", "zodiaqo", "drybridge", "chronicle", "gardenia", "svetitskhoveli", "ethno", "ortachala", "lumos", "ollivander", "ghouse_didube", "funicular", "funilower", "khedva_dinamo", "khedva_ljub"];
 const PHOTOS={"peace":[["img/peace/1.jpg","Andrew Milligan sumo · CC BY 2.0 · Wikimedia Commons","https://commons.wikimedia.org/wiki/File:Mtkvari_River_Cruise,_Tbilisi,_Georgia_(48813987373).jpg"],
 ["img/peace/2.jpg","falco · CC0 · Wikimedia Commons","https://commons.wikimedia.org/wiki/File:Tbilisi_Peace_Bridge_and_Kura_River_by_Falco.jpg"],
 ["img/peace/3.jpg","ako-aleko · CC BY-SA 3.0 · Wikimedia Commons","https://commons.wikimedia.org/wiki/File:Mtkvari_-_panoramio.jpg"],
