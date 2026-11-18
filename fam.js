@@ -26,14 +26,59 @@ function famPill(){let p=$("#fampill");if(!p){p=document.createElement("button")
 // --- sharing ---
 function hereStart(){
   if(!navigator.geolocation){fs.hereErr="המיקום לא זמין במכשיר הזה";famHereDraw();famRender();return}
-  if(fs.watch!=null)return;
-  fs.watch=navigator.geolocation.watchPosition(famOnPos,e=>{
-    fs.hereErr=e.code==1?"הגישה למיקום נחסמה – אפשר לאשר בהגדרות הדפדפן":"המיקום לא זמין כרגע";
-    if(!fs.paused)fs.status="off";
-    famPill();famHereDraw();famRender();
-  },{enableHighAccuracy:true,maximumAge:2e3,timeout:20e3});
+  if(fs.watch==null){
+    fs.watch=navigator.geolocation.watchPosition(famOnPos,e=>{
+      fs.hereErr=e.code==1?"הגישה למיקום נחסמה – אפשר לאשר בהגדרות הדפדפן":"המיקום לא זמין כרגע";
+      if(!fs.paused)fs.status="off";
+      famPill();famHereDraw();famRender();
+    },{enableHighAccuracy:true,maximumAge:1e3,timeout:20e3});
+  }
+  compassStart();
 }
-function hereStop(){if(fs.watch!=null){navigator.geolocation.clearWatch(fs.watch);fs.watch=null}}
+function hereStop(){if(fs.watch!=null){navigator.geolocation.clearWatch(fs.watch);fs.watch=null}compassStop()}
+function headingSmooth(prev,next,a){if(!isFinite(next))return prev;if(!isFinite(prev))return next;let d=next-prev;while(d>180)d-=360;while(d<-180)d+=360;return(prev+(a||.28)*d+360)%360}
+function headingFromOri(e){
+  if(e&&typeof e.webkitCompassHeading=="number"&&isFinite(e.webkitCompassHeading))return(e.webkitCompassHeading+360)%360;
+  if(e&&isFinite(e.alpha)){let h=360-e.alpha;const ang=(screen.orientation&&isFinite(screen.orientation.angle)?screen.orientation.angle:(typeof window.orientation=="number"?window.orientation:0));return(h+ang+360)%360}
+  return NaN;
+}
+function compassNeedsAsk(){return typeof DeviceOrientationEvent!="undefined"&&typeof DeviceOrientationEvent.requestPermission=="function"&&!fs.compassGranted}
+function compassOnOri(e){
+  if(e.type=="deviceorientationabsolute")fs.gotAbs=1;
+  else if(fs.gotAbs&&!(typeof e.webkitCompassHeading=="number"&&isFinite(e.webkitCompassHeading)))return;
+  const h=headingFromOri(e);if(!isFinite(h))return;
+  fs.heading=headingSmooth(fs.heading,h);fs.compassAt=Date.now();famHereDraw();
+}
+function compassBind(){
+  if(fs.compassOn||typeof window.DeviceOrientationEvent=="undefined")return;
+  fs.compassOn=1;fs.gotAbs=0;
+  fs._onAbs=e=>compassOnOri(e);fs._onOri=e=>compassOnOri(e);
+  window.addEventListener("deviceorientationabsolute",fs._onAbs,true);
+  window.addEventListener("deviceorientation",fs._onOri,true);
+}
+function compassStop(){
+  if(!fs.compassOn)return;fs.compassOn=0;
+  if(fs._onAbs)window.removeEventListener("deviceorientationabsolute",fs._onAbs,true);
+  if(fs._onOri)window.removeEventListener("deviceorientation",fs._onOri,true);
+  fs._onAbs=fs._onOri=null;
+}
+function compassStart(){
+  if(document.hidden)return;
+  if(compassNeedsAsk()){if($("#fmap"))famCompassPrompt(true);return}
+  famCompassPrompt(false);compassBind();
+}
+async function compassAsk(){
+  try{const r=await DeviceOrientationEvent.requestPermission();if(r=="granted"){fs.compassGranted=1;famCompassPrompt(false);compassBind()}else{fs.compassDenied=1;famCompassPrompt(false)}}
+  catch(e){fs.compassDenied=1;famCompassPrompt(false)}
+}
+function famCompassPrompt(show){
+  const map=$("#fmap");let b=$("#compassask");
+  if(!show||!map){if(b)b.remove();return}
+  if(b)return;
+  b=document.createElement("button");b.id="compassask";b.type="button";b.className="compass-ask";b.textContent="הפעל מצפן 🧭";
+  b.onclick=e=>{e.preventDefault();e.stopPropagation();compassAsk()};
+  map.appendChild(b);
+}
 function famStart(){famEnsure();if(document.hidden){famStop();return}
   if(fs.me&&fs.room)famListen();
   hereStart();
@@ -41,8 +86,11 @@ function famStart(){famEnsure();if(document.hidden){famStop();return}
 function famStop(){hereStop();if(fs.es){fs.es.close();fs.es=null}clearInterval(fs.poll);fs.poll=null;fs.status="off";famPill()}
 async function famOnPos(p){
   const c=p.coords;
-  fs.hereErr="";fs.here={la:c.latitude,lo:c.longitude,a:c.accuracy,t:Date.now()};
+  fs.hereErr="";fs.here={la:c.latitude,lo:c.longitude,a:c.accuracy,t:Date.now(),spd:c.speed,gpsH:c.heading};
+  const fresh=fs.compassAt&&Date.now()-fs.compassAt<1500;
+  if(!fresh){const gh=c.heading,spd=c.speed;if(isFinite(gh)&&gh>=0&&isFinite(spd)&&spd>0.6)fs.heading=headingSmooth(fs.heading,gh)}
   famHereDraw();
+  if(fs.follow)famFollowPan();
   if(fs.herePendingCenter){fs.herePendingCenter=0;famCenterMe()}
   if(fs.me&&!fs.paused){
     fs.err="";fs.status="on";famPill();
@@ -86,14 +134,16 @@ function famInit(){if(!fs.room){$("#fcreate").onclick=famCreate;return}
   $("#finv").onclick=async()=>{const u=famLink(),t="איפה כולם – פתחו את הקישור כדי לראות אחד את השני בטביליסי 🇬🇪\n"+u;
     if(navigator.share)try{await navigator.share({title:"איפה כולם",text:t});return}catch(e){if(e.name=="AbortError")return}
     location.href="https://wa.me/?text="+encodeURIComponent(t)};
-  fs.map=null;fs.mk={};fs.pin={};fs.ln={};fs.pm=null;fs.spreadHooked=0;fs.leg=null;fs.xctl=null;fs.hctl=null;fs.sctl=null;fs.rt=null;fs.popHooked=0;fs.hereMk=null;fs.hereAcc=null;fs.sm=null;fs.so=null;fs.saveHooked=0;
+  fs.map=null;fs.mk={};fs.pin={};fs.ln={};fs.pm=null;fs.spreadHooked=0;fs.leg=null;fs.xctl=null;fs.hctl=null;fs.sctl=null;fs.rt=null;fs.popHooked=0;fs.hereMk=null;fs.hereAcc=null;fs.sm=null;fs.so=null;fs.saveHooked=0;fs.followHooked=0;
   famLeaflet().then(()=>{if(!$("#fmap"))return;fs.map=L.map("fmap",{zoomControl:false,attributionControl:true}).setView([HOTEL.lat,HOTEL.lng],14);
     L.tileLayer("https://tile.openstreetmap.de/{z}/{x}/{y}.png",{maxZoom:21,maxNativeZoom:19,attribution:"© OpenStreetMap"}).addTo(fs.map);
     if(!fs.map.getPane("routes")){const pn=fs.map.createPane("routes");pn.style.zIndex=350;pn.style.pointerEvents="none"}
     L.marker([HOTEL.lat,HOTEL.lng],{icon:L.divIcon({className:"",html:`<div class="fmk" style="--c:#7a2e1d">🏨</div>`,iconSize:[36,36],iconAnchor:[18,18]}),zIndexOffset:50}).addTo(fs.map).bindTooltip("המלון");
     const cpop=`<div class="ppop"><b>🥋 מחנה האימונים</b><p class="sub" dir="ltr" style="text-align:right">${CAMP.e}</p><a class="btn" href="${typeof nav==="function"?nav(CAMP,"driving"):"https://www.google.com/maps/dir/?api=1&destination="+CAMP.lat+","+CAMP.lng+"&travelmode=driving"}" target="_blank" rel="noopener">🧭 ניווט</a></div>`;
     L.marker([CAMP.lat,CAMP.lng],{icon:L.divIcon({className:"",html:`<div class="fmk" style="--c:#1a5c3a">🥋</div>`,iconSize:[36,36],iconAnchor:[18,18]}),zIndexOffset:60}).addTo(fs.map).bindTooltip("🥋 מחנה האימונים",{permanent:true,direction:"bottom",offset:[0,16],className:"camp-tip",opacity:1}).bindPopup(cpop,{className:"fam-pop",closeButton:true,autoPan:true,maxWidth:240,minWidth:220,autoPanPadding:[16,56]});
-    famRouteLines();famPlaceMarkers();famAddExpand();famAddHereCtl();famHookPopups();famHookSaveMap();savMarkers();famHereDraw();if(navigator.onLine!==false)savFillMissing();
+    famRouteLines();famPlaceMarkers();famAddExpand();famAddHereCtl();famHookFollow();famFollowSet(true);famHookPopups();famHookSaveMap();savMarkers();
+    if(fs.here){fs.herePendingCenter=0;fs.map.setView([fs.here.la,fs.here.lo],17)}else fs.herePendingCenter=1;
+    famHereDraw();compassStart();if(navigator.onLine!==false)savFillMissing();
     fs.map.invalidateSize();fs.fit=true;famHookSpread();famRender()}).catch(()=>{$("#fmap").innerHTML=`<p class="sub" style="padding:20px;text-align:center">המפה לא נטענה (אין אינטרנט?)</p>`});
   famRender()}
 function famLeaflet(){if(window.L)return Promise.resolve();return new Promise((ok,no)=>{const c=document.createElement("link");c.rel="stylesheet";c.href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";document.head.appendChild(c);
@@ -219,7 +269,7 @@ function famRender(){const el=$("#flist");if(!el)return;
       const ic=L.divIcon({className:"",html:`<div class="fmk${stale?" stale":""}" style="--c:${c}">${e}</div>`,iconSize:[38,38],iconAnchor:[19,19]});
       if(fs.mk[n])fs.mk[n].setIcon(ic);else fs.mk[n]=L.marker([o.la,o.lo],{icon:ic,zIndexOffset:200}).addTo(fs.map).bindTooltip(n);pts.push([o.la,o.lo])}
     if(fs.here)pts.push([fs.here.la,fs.here.lo]);
-    if(fs.fit&&pts.length>1){fs.map.fitBounds(pts,{padding:[40,40],maxZoom:16});fs.fit=false}
+    if(fs.fit&&pts.length>1){if(!(fs.follow&&fs.here))fs.map.fitBounds(pts,{padding:[40,40],maxZoom:16});fs.fit=false}
     famHereDraw();famSpreadMarkers()}
   savRender()}
 setInterval(()=>{if(location.hash=="#fam"&&!document.hidden)famRender()},30e3);
@@ -306,12 +356,32 @@ function famHereDraw(){
   const ll=L.latLng(h.la,h.lo),acc=Math.max(h.a||0,8);
   if(!fs.hereAcc)fs.hereAcc=L.circle(ll,{radius:acc,weight:1,color:"#1a73e8",opacity:.35,fillColor:"#1a73e8",fillOpacity:.14,interactive:false}).addTo(fs.map);
   else fs.hereAcc.setLatLng(ll).setRadius(acc);
-  const ic=L.divIcon({className:"here-ico",html:'<div class="here-dot"><i></i></div>',iconSize:[22,22],iconAnchor:[11,11]});
-  if(!fs.hereMk)fs.hereMk=L.marker(ll,{icon:ic,zIndexOffset:400,interactive:false,keyboard:false}).addTo(fs.map);
-  else fs.hereMk.setLatLng(ll);
+  const hasH=isFinite(fs.heading),html=`<div class="here-wrap${hasH?" has-h":""}" style="--h:${hasH?fs.heading.toFixed(1):0}deg"><div class="here-beam"></div><div class="here-dot"><i></i></div></div>`;
+  if(!fs.hereMk)fs.hereMk=L.marker(ll,{icon:L.divIcon({className:"here-ico",html,iconSize:[88,88],iconAnchor:[44,44]}),zIndexOffset:400,interactive:false,keyboard:false}).addTo(fs.map);
+  else{
+    fs.hereMk.setLatLng(ll);
+    const w=fs.hereMk.getElement()&&fs.hereMk.getElement().querySelector(".here-wrap");
+    if(w){w.style.setProperty("--h",(hasH?fs.heading.toFixed(1):0)+"deg");w.classList.toggle("has-h",!!hasH)}
+    else fs.hereMk.setIcon(L.divIcon({className:"here-ico",html,iconSize:[88,88],iconAnchor:[44,44]}));
+  }
+}
+function famFollowSet(on){
+  fs.follow=!!on;
+  const b=document.querySelector(".fmap-herebtn");
+  if(b){b.classList.toggle("on",fs.follow);b.title=fs.follow?"עוקב אחריך":"הצג אותי";b.setAttribute("aria-label",b.title)}
+}
+function famFollowPan(){
+  if(!fs.follow||!fs.map||!fs.here)return;
+  const c=fs.map.getCenter(),d=hav(c.lat,c.lng,fs.here.la,fs.here.lo)*1000;
+  if(d>3)fs.map.panTo([fs.here.la,fs.here.lo],{animate:d>20,duration:.3});
+}
+function famHookFollow(){
+  if(!fs.map||fs.followHooked)return;fs.followHooked=1;
+  fs.map.on("dragstart",()=>famFollowSet(false));
 }
 function famCenterMe(){
   hereStart();
+  famFollowSet(true);
   if(fs.here&&fs.map){fs.herePendingCenter=0;fs.map.setView([fs.here.la,fs.here.lo],Math.max(fs.map.getZoom(),17));return}
   fs.herePendingCenter=1;
   if(fs.hereErr)famRender();
