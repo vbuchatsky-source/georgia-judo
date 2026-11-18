@@ -176,3 +176,8 @@ body.fmap-on{overflow:hidden}
 #slist .savico .savthumb{border-radius:50%}
 .ppop .savdel{background:#f8e4e4;color:#8a1a1a}
 .popico{font-size:48px;text-align:center;line-height:1.1;margin:0 0 6px}
+.rcdot{width:10px;height:10px;border-radius:50%;display:inline-block;margin-inline-end:6px;flex:none;box-shadow:0 0 0 1px #0002;vertical-align:middle}
+.rchips button{display:inline-flex;align-items:center;justify-content:center;gap:0}
+.shortsbox .rchips{margin:8px -16px 0}
+.rhead h2 .rcdot{width:12px;height:12px;margin-inline-end:8px}
+.rtleg label{white-space:normal}

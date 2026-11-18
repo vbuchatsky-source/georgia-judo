@@ -34,7 +34,14 @@ const PLACES=[
 {n:"קתדרלת סיוני",e:"Sioni Cathedral",k:"a",ico:"⛪",d:"הקתדרלה ההיסטורית של טביליסי, ברחוב סיוני בעיר העתיקה.",lat:41.691314,lng:44.807525,q:"Sioni Cathedral, Tbilisi",s:[]},
 {n:"כנסיית אנצ'יסחטי",e:"Anchiskhati Basilica",k:"a",ico:"⛪",d:"הכנסייה העתיקה ביותר בטביליסי ששרדה, ברחוב שבתלי ליד מגדל השעון.",lat:41.695502,lng:44.806873,q:"Anchiskhati Basilica, Tbilisi",s:[]},
 {n:"רחוב שרדני",e:"Shardeni Street · Jean Chardin St",k:"a",ico:"🛍️",d:"סימטה להולכי רגל בין כיכר מיידן לקתדרלת סיוני, עם בתי קפה ומסעדות.",lat:41.690520,lng:44.808408,q:"Jean Chardin Street, Tbilisi",s:[]},
-{n:"מגדל השעון של גבריאדזה",e:"Gabriadze Clock Tower · Shavteli St",k:"a",ico:"🕰️",d:"מגדל שעון צבעוני ליד תיאטרון הבובות של רזו גבריאדזה, ברחוב שבתלי.",lat:41.695806,lng:44.806514,q:"Gabriadze Clock Tower, Tbilisi",s:[]}
+{n:"מגדל השעון של גבריאדזה",e:"Gabriadze Clock Tower · Shavteli St",k:"a",ico:"🕰️",d:"מגדל שעון צבעוני ליד תיאטרון הבובות של רזו גבריאדזה, ברחוב שבתלי.",lat:41.695806,lng:44.806514,q:"Gabriadze Clock Tower, Tbilisi",s:[]},
+{n:"כיכר אירופה",e:"Europe Square",k:"a",ico:"🟦",d:"כיכר על הגדה השמאלית של הנהר, בין כנסיית מטכי לפארק ריקה.",lat:41.691127,lng:44.811265,q:"Europe Square, Tbilisi",s:[]},
+{n:"כיכר ארקלה השני",e:"Erekle II Square",k:"a",ico:"🏛️",d:"כיכר קטנה בעיר העתיקה, בין גשר השלום לרחוב שבתלי.",lat:41.694288,lng:44.806413,q:"Erekle II Square, Tbilisi",s:[]},
+{n:"הכניסה לגן הבוטני",e:"National Botanical Garden · Botanikuri St",k:"a",ico:"🌿",d:"הכניסה התחתונה לגן הבוטני הלאומי, ברחוב בוטניקורי ליד מפל לגבטחבי.",lat:41.687142,lng:44.809861,q:"Tbilisi Botanical Garden, Botanikuri Street, Tbilisi",s:[]},
+{n:"סולולאקי · רחוב לדו אסתיאני",e:"Sololaki · Lado Asatiani St",k:"a",ico:"🎨",d:"רחוב ברובע סולולאקי, עם בתים בסגנון אר נובו.",lat:41.689544,lng:44.798085,q:"Lado Asatiani Street, Sololaki, Tbilisi",s:[]},
+{n:"רחוב קוטה אפחזי (לסלידזה)",e:"Kote Abkhazi St · formerly Leselidze",k:"a",ico:"🛍️",d:"הרחוב המסחרי של העיר העתיקה, לשעבר לסלידזה, מהמיידן לכיוון כיכר החירות.",lat:41.692810,lng:44.805616,q:"Kote Abkhazi Street, Tbilisi",s:[]},
+{n:"קניון גלריה",e:"Galleria Tbilisi · 2/4 Shota Rustaveli Ave",k:"a",ico:"🛍️",d:"קניון בכיכר החירות, בדרך רוסתוולי 2/4. פתוח כל יום 10:00–22:00. מהמלון כ-3.5 ק\"מ · 47 דק׳ הליכה, או כ-8 דק׳ במונית. מפסנאורי כ-1.4 ק\"מ · 19 דק׳ הליכה.",lat:41.694443,lng:44.799823,q:"Galleria Tbilisi, 2/4 Shota Rustaveli Avenue, Tbilisi",s:[],want:1,tel:"+995 32 250 00 40"}
+
 ];
 const hav=(a,b,c,d)=>{const R=6371,r=x=>x*Math.PI/180,x=Math.sin(r(c-a)/2)**2+Math.cos(r(a))*Math.cos(r(c))*Math.sin(r(d-b)/2)**2;return 2*R*Math.asin(Math.sqrt(x))};
 function navMode(p){const i=PLACES.indexOf(p);let drive=0,walk=0;
@@ -97,6 +104,37 @@ const ROUTES=[
 {id:"mtsk",n:"חצי יום במצחטה",icon:"🚕",mode:"driving",modeHe:"מונית / Bolt",start:"09:00",km:58.6,min:73,fromH:"27.5 ק\"מ · 33 דק׳ נסיעה",tip:"נסיעה הלוך־חזור כשעה ו־15 דק׳, כולל עצירה קצרה בחנות אוליוונדרס בדרך חזרה (פתוחה 10:00–21:00). השאירו 2–3 שעות באתר עצמו.",stops:[
 {i:15,note:"קתדרלת סבטיצחובלי ושוק מזכרות. גלידת יין בסרטון – לא לילדים.",nx:"22.6 ק\"מ · 27 דק׳ נסיעה"},
 {i:19,note:"חנות מזכרות בהשראת הארי פוטר – שרביטים, גלימות וצעיפים.",nx:"8.3 ק\"מ · 12 דק׳ חזרה למלון"}
+]},
+{id:"fort",n:"מבצר ונוף",icon:"🏰",mode:"walking",modeHe:"הליכה",start:"10:00",km:2.7,min:36,loop:1,short:1,fromH:"2.4 ק\"מ · 32 דק׳ הליכה, או כ-6 דק׳ במונית",tip:"עלייה למבצר נריקלה ולפסל אם גאורגיה, עם המפל והכניסה לגן הבוטני. כ-2.7 ק\"מ · 36 דק׳ הליכה, ובגלל העלייה כ-45–60 דק׳ בפועל. אפשר גם לעלות או לרדת ברכבל מפארק ריקה (בחורף 10:00–22:00).",stops:[
+{i:25,note:"כאן מתחילים וחוזרים.",nx:"0.3 ק\"מ · 5 דק׳"},
+{i:34,note:"הכניסה התחתונה לגן הבוטני, ליד המפל.",nx:"0.2 ק\"מ · 3 דק׳"},
+{i:6,note:"מפל קטן בערוץ התאנים. מכאן עולים במדרגות למבצר.",nx:"0.4 ק\"מ · 6 דק׳"},
+{i:26,note:"מבצר על הרכס – תצפית על העיר.",nx:"0.9 ק\"מ · 12 דק׳"},
+{i:3,note:"פסל ונקודת תצפית. אפשר לרדת ברכבל במקום במדרגות, ואז לחזור לפסנאורי.",nx:"0.8 ק\"מ · 11 דק׳"}
+]},
+{id:"river",n:"נהר וגשרים",icon:"🌉",mode:"walking",modeHe:"הליכה",start:"10:00",km:3.4,min:45,loop:1,short:1,fromH:"2.4 ק\"מ · 32 דק׳ הליכה, או כ-6 דק׳ במונית",tip:"סיבוב לאורך הנהר והגשרים: מטכי, כיכר אירופה, פארק ריקה וגשר השלום. כ-3.4 ק\"מ · 45 דק׳ הליכה.",stops:[
+{i:25,note:"כאן מתחילים וחוזרים.",nx:"0.5 ק\"מ · 6 דק׳"},
+{i:27,note:"כנסייה על צוק מעל הנהר, עם תצפית לעיר העתיקה.",nx:"0.8 ק\"מ · 11 דק׳"},
+{i:32,note:"כיכר על הגדה השמאלית, בדרך לפארק ריקה.",nx:"0.7 ק\"מ · 10 דק׳"},
+{i:1,note:"פארק על גדת הנהר, ליד הרכבל וגשר השלום.",nx:"0.3 ק\"מ · 4 דק׳"},
+{i:0,note:"גשר הולכי רגל מזכוכית ופלדה מעל המטקווארי.",nx:"0.3 ק\"מ · 5 דק׳"},
+{i:33,note:"כיכר קטנה בעיר העתיקה – ואז חזרה לפסנאורי.",nx:"0.8 ק\"מ · 10 דק׳"}
+]},
+{id:"lanes",n:"סמטאות ומרחצאות",icon:"♨️",mode:"walking",modeHe:"הליכה",start:"10:00",km:2.5,min:33,loop:1,short:1,fromH:"2.4 ק\"מ · 32 דק׳ הליכה, או כ-6 דק׳ במונית",tip:"סמטאות העיר העתיקה ורובע המרחצאות. כ-2.5 ק\"מ · 33 דק׳ הליכה, ועם עצירות לקפה או למרחץ כ-45–60 דק׳.",stops:[
+{i:25,note:"כאן מתחילים וחוזרים.",nx:"0.3 ק\"מ · 4 דק׳"},
+{i:5,note:"חזית המרחץ הצבעוני באבנוטובני.",nx:"0.4 ק\"מ · 6 דק׳"},
+{i:7,note:"שוק תת־קרקעי מתחת לכיכר גורגסלי.",nx:"0.1 ק\"מ · 1 דק׳"},
+{i:30,note:"סימטה להולכי רגל עם בתי קפה ומסעדות.",nx:"0.1 ק\"מ · 2 דק׳"},
+{i:28,note:"הקתדרלה ההיסטורית של טביליסי.",nx:"0.5 ק\"מ · 7 דק׳"},
+{i:29,note:"הכנסייה העתיקה ביותר בטביליסי ששרדה.",nx:"0.1 ק\"מ · 1 דק׳"},
+{i:31,note:"מגדל שעון צבעוני ליד תיאטרון הבובות – ואז חזרה לפסנאורי.",nx:"0.9 ק\"מ · 11 דק׳"}
+]},
+{id:"solo",n:"סולולאקי וחירות",icon:"🎨",mode:"walking",modeHe:"הליכה",start:"10:00",km:3.2,min:43,loop:1,short:1,fromH:"2.4 ק\"מ · 32 דק׳ הליכה, או כ-6 דק׳ במונית",tip:"לכיוון כיכר החירות ורובע סולולאקי, כולל קניון גלריה (פתוח כל יום 10:00–22:00). כ-3.2 ק\"מ · 43 דק׳ הליכה.",stops:[
+{i:25,note:"כאן מתחילים וחוזרים.",nx:"0.6 ק\"מ · 8 דק׳"},
+{i:36,note:"הרחוב המסחרי של העיר העתיקה, לשעבר לסלידזה.",nx:"0.5 ק\"מ · 7 דק׳"},
+{i:8,note:"הכיכר המרכזית, עם עמוד פסל גאורגי הקדוש. מכאן מתחיל גם שדרת רוסתוולי.",nx:"0.3 ק\"מ · 4 דק׳"},
+{i:37,note:"קניון בכיכר החירות. פתוח כל יום 10:00–22:00.",nx:"0.8 ק\"מ · 10 דק׳"},
+{i:35,note:"רחוב ברובע סולולאקי עם בתי אר נובו – ואז חזרה לפסנאורי.",nx:"1.0 ק\"מ · 14 דק׳"}
 ]}
 ];
 function routeMaps(r){
@@ -111,29 +149,36 @@ function routeMaps(r){
 }
 function fmtDur(m){const h=Math.floor(m/60),x=m%60;return h?h+" שע׳ "+x+" דק׳":x+" דק׳"}
 let RT=+(localStorage.getItem("rt")||0);
-const RSHORT=["עיר עתיקה","מרכז","כרוניקה","מצחטה"];
+const RSHORT=["עיר עתיקה","מרכז","כרוניקה","מצחטה","מבצר ונוף","נהר וגשרים","סמטאות ומרחצאות","סולולאקי וחירות"];
 function clinicBox(){return `<div class="box"><h2>👟 מכון מדרסים</h2>
 <p><b>${CLINIC.n}</b></p><p>🕐 ${CLINIC.hours}</p><p>💰 ${CLINIC.price}</p><p>🔬 ${CLINIC.tech}</p><p>📅 ${CLINIC.timing}</p><p>👟 ${CLINIC.shoes}</p>
 <p class="sub">${CLINIC.status}</p>
 <a class="btn" href="${CLINIC.walink}" target="_blank" rel="noopener">💬 WhatsApp ${CLINIC.wa}</a>
 <a class="btn alt" href="mailto:${CLINIC.email}">✉️ ${CLINIC.email}</a>
 ${CLINIC.branches.map(b=>`<div class="br"><b>${b.rec?"⭐ ":""}${b.n}</b><br><span class="sub">${b.e}</span><br>🚕 ~${b.km} ק"מ · ~${b.min} דק׳ מונית מהמלון<a class="btn alt" href="https://www.google.com/maps/dir/?api=1&origin=${HOTEL.lat},${HOTEL.lng}&destination=${b.lat},${b.lng}&travelmode=driving" target="_blank" rel="noopener">🧭 ניווט ל${b.rec?"דינמו":"ליובליאנה"}</a></div>`).join("")}</div>`}
+function rtChip(i){const x=ROUTES[i],col=typeof RTCOL!=="undefined"&&RTCOL[x.id];
+  return `<button data-r="${i}" class="${i==RT?"on":""}">${col?`<i class="rcdot" style="background:${col}"></i>`:""}${RSHORT[i]||x.n}</button>`}
 function routesView(){const r=ROUTES[RT]||ROUTES[0],loop=!!r.loop,p0=loop?PLACES[r.stops[0].i]:null,ico=p0&&(p0.ico||"🍴");
   const lead=loop&&r.fromH?`<p class="sub">מהמלון עד ${p0.n}: ${r.fromH}</p>`:"";
   const head=loop?"":`<li class="tlend">🏨 יציאה מהמלון</li>${r.fromH?`<li class="leg">↓ ${legTxt(r.fromH)}</li>`:""}`;
   const foot=loop?`<li class="tlend">${ico} חזרה ל${p0.n}</li>`:`<li class="tlend">🏨 חזרה למלון</li>`;
-  return `<div class="rchips">${ROUTES.map((x,i)=>`<button data-r="${i}" class="${i==RT?"on":""}">${RSHORT[i]||x.n}</button>`).join("")}</div>
-<section class="rhead"><h2>${r.n}</h2>
-<p class="rmeta">${r.icon} ${r.modeHe} · ${r.km} ק"מ · ${fmtDur(r.min)} · יציאה ${r.start}</p>
+  const days=ROUTES.map((x,i)=>i).filter(i=>!ROUTES[i].short),shorts=ROUTES.map((x,i)=>i).filter(i=>ROUTES[i].short);
+  const col=typeof RTCOL!=="undefined"&&RTCOL[r.id];
+  return `<div class="rchips">${days.map(rtChip).join("")}</div>
+<div class="box shortsbox"><h2>🍴 טיולים קצרים מפסנאורי</h2>
+<p class="sub">ארבע יציאות קצרות מהמסעדה, כל אחת בצבע אחר על המפה.</p>
+<div class="rchips">${shorts.map(rtChip).join("")}</div></div>
+<section class="rhead"><h2>${col?`<i class="rcdot" style="background:${col}"></i>`:""}${r.n}</h2>
+<p class="rmeta">${r.icon} ${r.modeHe} · ${r.km} ק"מ · ${fmtDur(r.min)}${r.short?"":" · יציאה "+r.start}</p>
 <p class="rtip">${r.tip}</p>${lead}
 <a class="btn" href="${routeMaps(r)}" target="_blank" rel="noopener">🧭 נווט במסלול</a></section>
 <ol class="tl">${head}
 ${r.stops.map((s,idx)=>stopCard(r,s,idx)).join("")}
 ${foot}</ol>
-<details class="more"><summary>ℹ️ על המסלולים</summary><p>מסלול העיר העתיקה מתחיל ונגמר במסעדת פסנאורי. שאר המסלולים מתחילים ונגמרים במלון Residence Plaza. המרחקים והזמנים לפי ניתוב הליכה/נסיעה אמיתי (OSRM), בלי זמן הביקור עצמו.</p><p>📅 16–22.11 · שלבו מסלול בין האימונים. ב־22.11 הטיסה ב־12:05 – רק משהו קצר בבוקר.</p></details>
+<details class="more"><summary>ℹ️ על המסלולים</summary><p>מסלול העיר העתיקה הארוך וארבעת הטיולים הקצרים מתחילים ונגמרים במסעדת פסנאורי. שאר המסלולים מתחילים ונגמרים במלון Residence Plaza. המרחקים והזמנים לפי ניתוב הליכה/נסיעה אמיתי (OSRM), בלי זמן הביקור עצמו.</p><p>📅 16–22.11 · שלבו מסלול בין האימונים. ב־22.11 הטיסה ב־12:05 – רק משהו קצר בבוקר.</p></details>
 ${clinicBox()}`}
 const esc=t=>String(t).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-const STOPEMO=["🌉","🌳","🚡","🗽","🍷","♨️","💦","🛍️","🏛️","🍲","🍖","🍰","🖼️","🗿","🌷","⛪","💃","🍽️","🍜","🪄","🍲","🍩","🚡","👟","👟","🍴","🏰","⛪","⛪","⛪","🛍️","🕰️"];
+const STOPEMO=["🌉","🌳","🚡","🗽","🍷","♨️","💦","🛍️","🏛️","🍲","🍖","🍰","🖼️","🗿","🌷","⛪","💃","🍽️","🍜","🪄","🍲","🍩","🚡","👟","👟","🍴","🏰","⛪","⛪","⛪","🛍️","🕰️","🟦","🏛️","🌿","🎨","🛍️","🛍️"];
 function gallery(i){const L=photosOf(i);
   if(!L.length)return `<div class="gal none">${STOPEMO[i]||"📍"} <span>אין תמונות</span></div>`;
   return `<div class="gal" data-p="${i}"><div class="gtrack">${L.map((p,k)=>`<img src="${p[0]}" ${k?'loading="lazy"':''} decoding="async" alt="${esc(PLACES[i].n)} ${k+1}" data-k="${k}">`).join("")}</div>${L.length>1?`<div class="dots">${L.map((_,k)=>`<i class="${k?"":"on"}"></i>`).join("")}</div>`:""}</div>`}

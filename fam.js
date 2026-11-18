@@ -223,11 +223,15 @@ function famRender(){const el=$("#flist");if(!el)return;
     famHereDraw();famSpreadMarkers()}
   savRender()}
 setInterval(()=>{if(location.hash=="#fam"&&!document.hidden)famRender()},30e3);
-const RTCOL={old:"#1a73e8",ctr:"#c62828",north:"#2f9e44",mtsk:"#8e24aa"};
-const RTLBL={old:"עיר עתיקה",ctr:"מרכז",north:"כרוניקה",mtsk:"מצחטה"};
+const RTCOL={old:"#6d4c41",ctr:"#c62828",north:"#2f9e44",mtsk:"#8e24aa",fort:"#e53935",river:"#1e88e5",lanes:"#43a047",solo:"#fb8c00"};
+const RTLBL={old:"עיר עתיקה",ctr:"מרכז",north:"כרוניקה",mtsk:"מצחטה",fort:"מבצר ונוף",river:"נהר וגשרים",lanes:"סמטאות ומרחצאות",solo:"סולולאקי וחירות"};
+function famRtIds(){return(typeof ROUTES!=="undefined"?ROUTES:[]).map(r=>r.id)}
 function famRtLoad(){try{return JSON.parse(localStorage.georgiaRt||"")}catch(e){return null}}
 function famRtSave(st){try{localStorage.georgiaRt=JSON.stringify(st)}catch(e){}}
-function famRtState(){const d={old:1,ctr:1,north:1,mtsk:1},s=famRtLoad();if(s&&typeof s=="object")for(const k of Object.keys(d))if(k in s)d[k]=s[k]?1:0;return d}
+function famRtState(){const ids=famRtIds(),d={};for(const id of ids)d[id]=1;d.old=0;
+  const s=famRtLoad();
+  if(s&&typeof s=="object"){const has=["fort","river","lanes","solo"].some(k=>k in s);for(const k of ids)if(k in s)d[k]=s[k]?1:0;if(!has){d.old=0;d.fort=1;d.river=1;d.lanes=1;d.solo=1}}
+  return d}
 function famRoutePts(r){const pts=r.stops.map(s=>[PLACES[s.i].lat,PLACES[s.i].lng]);
   if(r.loop){const a=pts[0];if(a&&(pts[pts.length-1][0]!==a[0]||pts[pts.length-1][1]!==a[1]))pts.push(a);return pts}
   return[[HOTEL.lat,HOTEL.lng],...pts,[HOTEL.lat,HOTEL.lng]]}
@@ -261,8 +265,8 @@ function famRtLegend(){
       `<div class="rtleg-b">`+
       (typeof ROUTES!=="undefined"?ROUTES:[]).map(r=>`<label><input type="checkbox" data-rt="${r.id}" ${st[r.id]?"checked":""}><i style="background:${RTCOL[r.id]}"></i>${RTLBL[r.id]||r.n}</label>`).join("")+`</div>`;
     d.querySelectorAll("input").forEach(inp=>{inp.onchange=()=>{const s=famRtState();s[inp.dataset.rt]=inp.checked?1:0;famRtApply(s)}});
-    d.querySelector(".rtall").onclick=()=>famRtApply({old:1,ctr:1,north:1,mtsk:1});
-    d.querySelector(".rtnone").onclick=()=>famRtApply({old:0,ctr:0,north:0,mtsk:0});
+    d.querySelector(".rtall").onclick=()=>famRtApply(Object.fromEntries(famRtIds().map(id=>[id,1])));
+    d.querySelector(".rtnone").onclick=()=>famRtApply(Object.fromEntries(famRtIds().map(id=>[id,0])));
     const tog=d.querySelector(".rtleg-tog");
     tog.onclick=()=>{const on=d.classList.contains("closed");d.classList.toggle("closed",!on);tog.setAttribute("aria-expanded",on?"true":"false");tog.querySelector(".chev").textContent=on?"▴":"▾";famRtOpenSet(on)};
     return d;
