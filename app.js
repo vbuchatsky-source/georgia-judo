@@ -129,7 +129,7 @@ async function fxInit(){
 }
 // ---------- router ----------
 const ALIAS={judo:"info",go:"info",pp:"fly"},TABK=["info","trip","fam","fly","routes","ins","pack"];
-function go(t){t=ALIAS[t]||t;if(!TABK.includes(t))t="info";if(typeof famToggleFull==="function")famToggleFull(false);document.body.classList.remove("fmap-on");location.hash=t;$("#main").innerHTML=V[t]();$("#tabs").innerHTML=TABS.map(([k,i,l])=>`<button class="${k==t?'on':''}" data-t="${k}">${i}<br>${l}</button>`).join("");$("#tabs").querySelectorAll("button").forEach(b=>b.onclick=()=>go(b.dataset.t));scrollTo(0,0);
+function go(t){t=ALIAS[t]||t;if(!TABK.includes(t))t="info";if(typeof fsearchClose==="function")fsearchClose(true);if(typeof famToggleFull==="function")famToggleFull(false);document.body.classList.remove("fmap-on");location.hash=t;$("#main").innerHTML=V[t]();$("#tabs").innerHTML=TABS.map(([k,i,l])=>`<button class="${k==t?'on':''}" data-t="${k}">${i}<br>${l}</button>`).join("");$("#tabs").querySelectorAll("button").forEach(b=>b.onclick=()=>go(b.dataset.t));scrollTo(0,0);
 if(t=="info"){wx();fxInit()}
 if(t=="trip"){const n=Math.ceil((new Date("2026-11-16")-new Date())/864e5);$("#cd").textContent=n>0?`⏳ עוד ${n} ימים לטיסה`:""}
 if(t=="fly"){vault();const b=$("#bpopen");if(b)b.onclick=bpOpen}
