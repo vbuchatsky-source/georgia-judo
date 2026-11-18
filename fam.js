@@ -168,7 +168,7 @@ function famPlacePopup(p,i){
     const imgs=ph.map(x=>`<img src="${x[0]}" alt="" draggable="false">`).join("");
     const dots=ph.length>1?`<div class="pgdots">${ph.map((_,k)=>`<i class="${k?"":"on"}"></i>`).join("")}</div>`:"";
     gal=`<div class="pgal" dir="ltr" data-n="${ph.length}"><div class="pgtrack">${imgs}</div>${dots}</div>`;
-  }
+  }else if(p.ico){gal=`<div class="popico">${p.ico}</div>`}
   const href=typeof nav=="function"?nav(p):"https://www.google.com/maps/dir/?api=1&destination="+p.lat+","+p.lng+"&travelmode=driving";
   const wa=p.wa?`<a class="btn alt" href="${p.wa}" target="_blank" rel="noopener">💬 WhatsApp</a>`:"";
   return `<div class="ppop">${gal}<b>${name}</b><a class="btn" href="${href}" target="_blank" rel="noopener">🧭 ניווט</a>${wa}</div>`;
@@ -195,7 +195,7 @@ function famPlaceMarkers(){
   const setLabs=()=>{const on=fs.map.getZoom()>=15;const el=$("#fmap");if(el)el.classList.toggle("hi-z",on)};
   for(const{p,i}of famVisitPlaces()){
     const ph=typeof photosOf=="function"?photosOf(i):[];
-    const src=ph[0]&&ph[0][0],ico=p.k=="r"?"🍽️":p.k=="s"?"👟":"📍";
+    const src=ph[0]&&ph[0][0],ico=p.ico||(p.k=="r"?"🍽️":p.k=="s"?"👟":"📍");
     const html=src?`<div class="pmk"><img src="${src}" alt=""></div>`:`<div class="pmk fb">${ico}</div>`;
     const mk=L.marker([p.lat,p.lng],{icon:L.divIcon({className:"pmid",html,iconSize:[32,32],iconAnchor:[16,16]}),zIndexOffset:-100,riseOnHover:true}).addTo(fs.map);
     mk.bindTooltip(p.n,{permanent:true,direction:"bottom",offset:[0,6],className:"plab-tip",opacity:1});
@@ -228,7 +228,9 @@ const RTLBL={old:"עיר עתיקה",ctr:"מרכז",north:"כרוניקה",mtsk:
 function famRtLoad(){try{return JSON.parse(localStorage.georgiaRt||"")}catch(e){return null}}
 function famRtSave(st){try{localStorage.georgiaRt=JSON.stringify(st)}catch(e){}}
 function famRtState(){const d={old:1,ctr:1,north:1,mtsk:1},s=famRtLoad();if(s&&typeof s=="object")for(const k of Object.keys(d))if(k in s)d[k]=s[k]?1:0;return d}
-function famRoutePts(r){return[[HOTEL.lat,HOTEL.lng],...r.stops.map(s=>[PLACES[s.i].lat,PLACES[s.i].lng]),[HOTEL.lat,HOTEL.lng]]}
+function famRoutePts(r){const pts=r.stops.map(s=>[PLACES[s.i].lat,PLACES[s.i].lng]);
+  if(r.loop){const a=pts[0];if(a&&(pts[pts.length-1][0]!==a[0]||pts[pts.length-1][1]!==a[1]))pts.push(a);return pts}
+  return[[HOTEL.lat,HOTEL.lng],...pts,[HOTEL.lat,HOTEL.lng]]}
 function famRouteLines(){
   if(!fs.map)return;fs.rt={};
   const st=famRtState();
