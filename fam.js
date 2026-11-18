@@ -36,7 +36,14 @@ function hereStart(){
   compassStart();
 }
 function hereStop(){if(fs.watch!=null){navigator.geolocation.clearWatch(fs.watch);fs.watch=null}compassStop()}
-function headingSmooth(prev,next,a){if(!isFinite(next))return prev;if(!isFinite(prev))return next;let d=next-prev;while(d>180)d-=360;while(d<-180)d+=360;return(prev+(a||.28)*d+360)%360}
+function headingDelta(a,b){let d=b-a;while(d>180)d-=360;while(d<-180)d+=360;return d}
+function headingSmooth(prev,next){
+  if(!isFinite(next))return prev;if(!isFinite(prev))return next;
+  const d=headingDelta(prev,next),ad=Math.abs(d);
+  if(ad<2)return prev;
+  if(ad>=12)return(prev+d+360)%360;
+  return(prev+.75*d+360)%360;
+}
 function headingFromOri(e){
   if(e&&typeof e.webkitCompassHeading=="number"&&isFinite(e.webkitCompassHeading))return(e.webkitCompassHeading+360)%360;
   if(e&&isFinite(e.alpha)){let h=360-e.alpha;const ang=(screen.orientation&&isFinite(screen.orientation.angle)?screen.orientation.angle:(typeof window.orientation=="number"?window.orientation:0));return(h+ang+360)%360}
@@ -47,7 +54,19 @@ function compassOnOri(e){
   if(e.type=="deviceorientationabsolute")fs.gotAbs=1;
   else if(fs.gotAbs&&!(typeof e.webkitCompassHeading=="number"&&isFinite(e.webkitCompassHeading)))return;
   const h=headingFromOri(e);if(!isFinite(h))return;
-  fs.heading=headingSmooth(fs.heading,h);fs.compassAt=Date.now();famHereDraw();
+  fs._rawH=h;fs.compassAt=Date.now();
+  if(!fs._hRaf)fs._hRaf=requestAnimationFrame(headingPaint);
+}
+function headingPaint(){
+  fs._hRaf=0;const raw=fs._rawH;if(!isFinite(raw))return;
+  fs.heading=headingSmooth(fs.heading,raw);headingApply();
+}
+function headingApply(){
+  if(!isFinite(fs.heading))return;
+  if(!fs.hereBeam&&fs.hereMk){const root=fs.hereMk.getElement();if(root){fs.hereWrap=root.querySelector(".here-wrap");fs.hereBeam=root.querySelector(".here-beam")}}
+  if(!fs.hereBeam)return;
+  if(fs.hereWrap)fs.hereWrap.classList.add("has-h");
+  fs.hereBeam.style.transform="rotate("+fs.heading.toFixed(1)+"deg)";
 }
 function compassBind(){
   if(fs.compassOn||typeof window.DeviceOrientationEvent=="undefined")return;
@@ -57,6 +76,7 @@ function compassBind(){
   window.addEventListener("deviceorientation",fs._onOri,true);
 }
 function compassStop(){
+  if(fs._hRaf){cancelAnimationFrame(fs._hRaf);fs._hRaf=0}
   if(!fs.compassOn)return;fs.compassOn=0;
   if(fs._onAbs)window.removeEventListener("deviceorientationabsolute",fs._onAbs,true);
   if(fs._onOri)window.removeEventListener("deviceorientation",fs._onOri,true);
@@ -134,7 +154,7 @@ function famInit(){if(!fs.room){$("#fcreate").onclick=famCreate;return}
   $("#finv").onclick=async()=>{const u=famLink(),t="איפה כולם – פתחו את הקישור כדי לראות אחד את השני בטביליסי 🇬🇪\n"+u;
     if(navigator.share)try{await navigator.share({title:"איפה כולם",text:t});return}catch(e){if(e.name=="AbortError")return}
     location.href="https://wa.me/?text="+encodeURIComponent(t)};
-  fs.map=null;fs.mk={};fs.pin={};fs.ln={};fs.pm=null;fs.spreadHooked=0;fs.leg=null;fs.xctl=null;fs.hctl=null;fs.sctl=null;fs.rt=null;fs.popHooked=0;fs.hereMk=null;fs.hereAcc=null;fs.sm=null;fs.so=null;fs.saveHooked=0;fs.followHooked=0;
+  fs.map=null;fs.mk={};fs.pin={};fs.ln={};fs.pm=null;fs.spreadHooked=0;fs.leg=null;fs.xctl=null;fs.hctl=null;fs.sctl=null;fs.rt=null;fs.popHooked=0;fs.hereMk=null;fs.hereAcc=null;fs.hereBeam=null;fs.hereWrap=null;fs.sm=null;fs.so=null;fs.saveHooked=0;fs.followHooked=0;
   famLeaflet().then(()=>{if(!$("#fmap"))return;fs.map=L.map("fmap",{zoomControl:false,attributionControl:true}).setView([HOTEL.lat,HOTEL.lng],14);
     L.tileLayer("https://tile.openstreetmap.de/{z}/{x}/{y}.png",{maxZoom:21,maxNativeZoom:19,attribution:"© OpenStreetMap"}).addTo(fs.map);
     if(!fs.map.getPane("routes")){const pn=fs.map.createPane("routes");pn.style.zIndex=350;pn.style.pointerEvents="none"}
@@ -349,21 +369,18 @@ function famHereDraw(){
   if(!fs.map)return;
   const h=fs.here;
   if(!h||!isFinite(h.la)){
-    if(fs.hereMk){fs.hereMk.remove();fs.hereMk=null}
+    if(fs.hereMk){fs.hereMk.remove();fs.hereMk=null}fs.hereBeam=fs.hereWrap=null;
     if(fs.hereAcc){fs.hereAcc.remove();fs.hereAcc=null}
     return;
   }
   const ll=L.latLng(h.la,h.lo),acc=Math.max(h.a||0,8);
   if(!fs.hereAcc)fs.hereAcc=L.circle(ll,{radius:acc,weight:1,color:"#1a73e8",opacity:.35,fillColor:"#1a73e8",fillOpacity:.14,interactive:false}).addTo(fs.map);
   else fs.hereAcc.setLatLng(ll).setRadius(acc);
-  const hasH=isFinite(fs.heading),html=`<div class="here-wrap${hasH?" has-h":""}" style="--h:${hasH?fs.heading.toFixed(1):0}deg"><div class="here-beam"></div><div class="here-dot"><i></i></div></div>`;
-  if(!fs.hereMk)fs.hereMk=L.marker(ll,{icon:L.divIcon({className:"here-ico",html,iconSize:[88,88],iconAnchor:[44,44]}),zIndexOffset:400,interactive:false,keyboard:false}).addTo(fs.map);
-  else{
-    fs.hereMk.setLatLng(ll);
-    const w=fs.hereMk.getElement()&&fs.hereMk.getElement().querySelector(".here-wrap");
-    if(w){w.style.setProperty("--h",(hasH?fs.heading.toFixed(1):0)+"deg");w.classList.toggle("has-h",!!hasH)}
-    else fs.hereMk.setIcon(L.divIcon({className:"here-ico",html,iconSize:[88,88],iconAnchor:[44,44]}));
-  }
+  const hasH=isFinite(fs.heading),deg=hasH?fs.heading.toFixed(1):0;
+  const html=`<div class="here-wrap${hasH?" has-h":""}"><div class="here-beam" style="transform:rotate(${deg}deg)"></div><div class="here-dot"><i></i></div></div>`;
+  if(!fs.hereMk){fs.hereBeam=fs.hereWrap=null;fs.hereMk=L.marker(ll,{icon:L.divIcon({className:"here-ico",html,iconSize:[88,88],iconAnchor:[44,44]}),zIndexOffset:400,interactive:false,keyboard:false}).addTo(fs.map)}
+  else fs.hereMk.setLatLng(ll);
+  headingApply();
 }
 function famFollowSet(on){
   fs.follow=!!on;
